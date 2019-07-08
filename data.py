@@ -4,6 +4,7 @@ import numpy as np
 from torch.utils.data import Dataset, Dataloader
 from torchvision import transforms, utils
 
+"""300 faces in the wild dataset class"""
 class Dataset300W(Dataset):
    def __init__(self, csv_file, root_dir, transform=None):
       """
