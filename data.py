@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset, Dataloader
 from torchvision import transforms, utils
+from torch.autograd import Variable
 
 #Dataset paths
 W300_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed/300W.csv"
@@ -36,8 +37,10 @@ class W300Dataset(Dataset):
       image = cv2.imread(image_path)
       if(self.transform == True):
          image = self.transform(image)
+      image = Variable(image, requires_grad=False)
       #MAYBE CHANGE TO FLOAT16 LATER
       label = np.asarray(self.labels.loc[idx].tolist(), dtype=np.float16)
+      label = Variable(label, requires_grad=False)
       #return a tuple of image 
       return (image, label)
 
@@ -64,7 +67,7 @@ class CKDataset(Dataset):
       tempDF = pd.read_csv(csv_file)
       self.labels = tempDF.drop(["image_path"], axis=1)
       self.transform = transform
-,
+
    #Returns the ith row of our dataframe
    def __getitem__(self, idx):
       #assuming no transformation
@@ -72,8 +75,10 @@ class CKDataset(Dataset):
       image = cv2.imread(image_path)
       if(self.transform == True):
          image = self.transform(image)
+      image = Variable(image, requires_grad=False)
       #MAYBE CHANGE TO FLOAT16 LATER
       label = np.asarray(self.labels.loc[idx].tolist(), dtype=np.float16)
+      label = Variable(label, requires_grad=False)
       #return a tuple of image 
       return (image, label)
 
