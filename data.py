@@ -7,6 +7,7 @@ from torchvision import transforms, utils
 #Dataset paths
 W300_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed/300W.csv"
 CK_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/Ck+-Processed/CK+.csv"
+BP4D_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/BP4D_cropped.csv"
 
 """300 faces in the wild dataset class"""
 class W300Dataset(Dataset):
