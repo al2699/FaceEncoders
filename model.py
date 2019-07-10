@@ -3,8 +3,6 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torchvision.models as models
 
-
-
 class Model(nn.Module):
    def __init__(self, vars):
       super(Model, self).__init__()

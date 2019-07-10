@@ -19,21 +19,30 @@ class W300Dataset(Dataset):
          transform (callable, optional): Optional transform to be applied
                                          at retrieval time
       """
-      self.root_dir = root_dor
-      self.df = pd.read_csv(csv_file)
+      self.root_dir = root_dir
+      tempDF = pd.read_csv(csv_file)
+      for h in df.head():
+         if(h != "image_path"):
+            tempDF = tempDF.drop([h],axis=1)
+      self.images = tempDF
+      tempDF = pd.read_csv(csv_file)
+      self.labels = tempDF.drop(["image_path"], axis=1)
       self.transform = transform
 
    #Returns the ith row of our dataframe
    def __getitem__(self, idx):
       #assuming no transformation
-      return self.df.loc[idx]
+      image_path = self.images["image_path"][idx]
+      image = cv2.imread(image_path)
+      label = np.asarray(self.labels.loc[idx].tolist())
+      return image, label
 
    def __len__(self):
       #must return the length of this dataset
-      return len(self.df["frame"])
+      return len(self.images["image_path"])
 
-"""Cohn-Kanade plus dataset class"""
-class CKDataset(Dataset):
+"""Cohn-Kanade Plus dataset class"""
+class W300Dataset(Dataset):
    def __init__(self, csv_file, root_dir, transform=None):
       """
       Args:
@@ -42,21 +51,30 @@ class CKDataset(Dataset):
          transform (callable, optional): Optional transform to be applied
                                          at retrieval time
       """
-      self.root_dir = root_dor
-      self.df = pd.read_csv(csv_file)
+      self.root_dir = root_dir
+      tempDF = pd.read_csv(csv_file)
+      for h in df.head():
+         if(h != "image_path"):
+            tempDF = tempDF.drop([h],axis=1)
+      self.images = tempDF
+      tempDF = pd.read_csv(csv_file)
+      self.labels = tempDF.drop(["image_path"], axis=1)
       self.transform = transform
 
    #Returns the ith row of our dataframe
    def __getitem__(self, idx):
       #assuming no transformation
-      return self.df.loc[idx]
+      image_path = self.images["image_path"][idx]
+      image = cv2.imread(image_path)
+      label = np.asarray(self.labels.loc[idx].tolist())
+      return image, label
 
    def __len__(self):
       #must return the length of this dataset
-      return len(self.df["frame"])
+      return len(self.images["image_path"])
 
-"""Cohn-Kanade plus dataset class"""
-class CKDataset(Dataset):
+"""BP4D dataset class"""
+class W300Dataset(Dataset):
    def __init__(self, csv_file, root_dir, transform=None):
       """
       Args:
@@ -65,15 +83,24 @@ class CKDataset(Dataset):
          transform (callable, optional): Optional transform to be applied
                                          at retrieval time
       """
-      self.root_dir = root_dor
-      self.df = pd.read_csv(csv_file)
+      self.root_dir = root_dir
+      tempDF = pd.read_csv(csv_file)
+      for h in df.head():
+         if(h != "image_path"):
+            tempDF = tempDF.drop([h],axis=1)
+      self.images = tempDF
+      tempDF = pd.read_csv(csv_file)
+      self.labels = tempDF.drop(["image_path"], axis=1)
       self.transform = transform
 
    #Returns the ith row of our dataframe
    def __getitem__(self, idx):
       #assuming no transformation
-      return self.df.loc[idx]
+      image_path = self.images["image_path"][idx]
+      image = cv2.imread(image_path)
+      label = np.asarray(self.labels.loc[idx].tolist())
+      return image, label
 
    def __len__(self):
       #must return the length of this dataset
-      return len(self.df["frame"])
+      return len(self.images["image_path"])
