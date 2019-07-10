@@ -12,7 +12,7 @@ BP4D_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/BP4D_cropped.csv
 
 """300 faces in the wild dataset class"""
 class W300Dataset(Dataset):
-   def __init__(self, csv_file, root_dir, transform=None):
+   def __init__(self, csv_file=, root_dir, transform=None):
       """
       Args:
          csv_file (string): path to the CSV file

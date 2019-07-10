@@ -9,6 +9,8 @@ def main():
    #Could later use adam
    optimizer = optim.SGD(model.parameters(), lr=0.02, momentum=0.9)
    
+   #could improve upon this by using data loaders for mini-batch sampling
+   
    epochs = 2001
    
 
