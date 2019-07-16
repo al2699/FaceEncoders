@@ -9,6 +9,7 @@ class Model(nn.Module):
       
       #Import resnet
       self.model = models.resnet50(pretrained=True)
+
       self.model.fc = nn.Linear(in_features=2048, out_features=41)
 
    def forward(self, x):

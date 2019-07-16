@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
-from torch.utils.data import Dataset, Dataloader
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 from torch.autograd import Variable
 
@@ -12,7 +12,7 @@ BP4D_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/BP4D_cropped.csv
 
 """300 faces in the wild dataset class"""
 class W300Dataset(Dataset):
-   def __init__(self, csv_file=, root_dir, transform=None):
+   def __init__(self, root_dir, csv_file=W300_CSV, transform=None):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -37,10 +37,12 @@ class W300Dataset(Dataset):
       image = cv2.imread(image_path)
       if(self.transform == True):
          image = self.transform(image)
-      image = Variable(image, requires_grad=False)
+      image_tensor = torch.Tensor(image)
+      image = Variable(image_tensor, requires_grad=False)
       #MAYBE CHANGE TO FLOAT16 LATER
       label = np.asarray(self.labels.loc[idx].tolist(), dtype=np.float16)
-      label = Variable(label, requires_grad=False)
+      label_tensor = torch.Tensor(label).view(-1,1)
+      label = Variable(label_tensor, requires_grad=False)
       #return a tuple of image 
       return (image, label)
 
@@ -50,7 +52,7 @@ class W300Dataset(Dataset):
 
 """Cohn-Kanade dataset class"""
 class CKDataset(Dataset):
-   def __init__(self, csv_file, root_dir, transform=None):
+   def __init__(self, root_dir, csv_file=CK_CSV, transform=None):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -75,10 +77,12 @@ class CKDataset(Dataset):
       image = cv2.imread(image_path)
       if(self.transform == True):
          image = self.transform(image)
-      image = Variable(image, requires_grad=False)
+      image_tensor = torch.Tensor(image)
+      image = Variable(image_tensor, requires_grad=False)
       #MAYBE CHANGE TO FLOAT16 LATER
       label = np.asarray(self.labels.loc[idx].tolist(), dtype=np.float16)
-      label = Variable(label, requires_grad=False)
+      label_tensor = torch.Tensor(label).view(-1,1)
+      label = Variable(label_tensor, requires_grad=False)
       #return a tuple of image 
       return (image, label)
 
