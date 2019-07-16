@@ -6,8 +6,9 @@ from torchvision import transforms, utils
 from torch.autograd import Variable
 
 #Dataset paths
-W300_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed/300W.csv"
-CK_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/Ck+-Processed/CK+.csv"
+W300_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed/300W_cropped.csv"
+CK_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/Ck+-Processed/CK+_cropped.csv"
+#BP4D CSV still not made
 BP4D_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/BP4D_cropped.csv"
 
 """300 faces in the wild dataset class"""

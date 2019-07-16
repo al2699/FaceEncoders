@@ -36,7 +36,7 @@ def main():
 
    #could improve upon this by using data loaders for mini-batch sampling
    epochs = 2001
-   steps = len(W300) + len(Ck) #+ len(BP4D)
+   steps = len(W300) + len(ck) #+ len(BP4D)
    
    print("Beginning training...")
    for i in range(epochs):
@@ -65,7 +65,7 @@ def main():
       if(i % 500 == 0):
          print("300W validation:")
          validate(w300_validate_ind, w300, model, loss_func)
-         print("CK+ validation")
+         print("CK+ validation:")
          validate(ck_validate_ind, ck, model, loss_func)
   
    print("Test/final loss: ")
@@ -81,7 +81,7 @@ def main():
 def train_test_validate_split(dataset):
    arr = range(0, len(dataset))
    arr = list(arr)
-   #10% valid, %10 testing, 80% training
+   #10% valid, 10% testing, 80% training
    test_amount = int(.10 * len(dataset))
    train_indices = []
    test_indices = []
