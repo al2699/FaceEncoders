@@ -12,7 +12,7 @@ BP4D_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/BP4D_cropped.csv
 
 """300 faces in the wild dataset class"""
 class W300Dataset(Dataset):
-   def __init__(self, root_dir, csv_file=W300_CSV, transform=None):
+   def __init__(self, csv_file=W300_CSV, transform=None):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -20,9 +20,9 @@ class W300Dataset(Dataset):
          transform (callable, optional): Optional transform to be applied
                                          at retrieval time
       """
-      self.root_dir = root_dir
+      #self.root_dir = root_dir
       tempDF = pd.read_csv(csv_file)
-      for h in df.head():
+      for h in tempDF.head():
          if(h != "image_path"):
             tempDF = tempDF.drop([h],axis=1)
       self.images = tempDF
@@ -52,7 +52,7 @@ class W300Dataset(Dataset):
 
 """Cohn-Kanade dataset class"""
 class CKDataset(Dataset):
-   def __init__(self, root_dir, csv_file=CK_CSV, transform=None):
+   def __init__(self, csv_file=CK_CSV, transform=None):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -60,7 +60,7 @@ class CKDataset(Dataset):
          transform (callable, optional): Optional transform to be applied
                                          at retrieval time
       """
-      self.root_dir = root_dir
+      #self.root_dir = root_dir
       tempDF = pd.read_csv(csv_file)
       for h in df.head():
          if(h != "image_path"):

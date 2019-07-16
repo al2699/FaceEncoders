@@ -4,6 +4,7 @@ import torch.optim as optim
 import torchvision.models as models
 import os
 import data
+import random
 
 model_save_path = "/home/ICT2000/ahernandez/Documents/FaceEncoders/"
 
@@ -25,17 +26,21 @@ def main():
    model = model.to(device)
 
    #Load datasets
-   w300 = W300Dataset(os.getcwd())
-   w300_train_ind, w300_test_ind, w300_validate_ind = train_test_validate(w300)
-   ck = CKDataset(os.getcwd())
-   ck_train_ind, ck_test_ind, ck_validate_ind = train_test_validate(ck)
+   print("Loading data...")
+   w300 = data.W300Dataset()
+   w300_train_ind, w300_test_ind, w300_validate_ind = train_test_validate_split(w300)
+   ck = data.CKDataset()
+   ck_train_ind, ck_test_ind, ck_validate_ind = train_test_validate_split(ck)
    #BP4D = BP4DDataset(os.getcwd())
+   print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
    epochs = 2001
    steps = len(W300) + len(Ck) #+ len(BP4D)
    
+   print("Beginning training...")
    for i in range(epochs):
+      print("epoch: " + str(i))
       #train on 300W dataset
       model.train()
       for j in range(len(w300_train_ind)):
@@ -75,19 +80,27 @@ def main():
 
 def train_test_validate_split(dataset):
    arr = range(0, len(dataset))
+   arr = list(arr)
    #10% valid, %10 testing, 80% training
-   train_amount = int(.10 * len(dataset))
    test_amount = int(.10 * len(dataset))
    train_indices = []
    test_indices = []
+   validate_indices = []
+
 
    for i in range(test_amount):
       pick = random.randint(0, len(arr) - 1)
       test_indices.append(arr[pick])
       del arr[pick]
+
+   for i in range(test_amount):
+      pick = random.randint(0, len(arr) - 1)
+      validate_indices.append(arr[pick])
+      del arr[pick]
+   
    train_indices = arr
 
-   return train_indices, test_indices
+   return train_indices, test_indices, validate_indices
 
 def validate(valid_indices, dataset, model, loss_func):
    agg_loss = 0
