@@ -1,13 +1,15 @@
 import os
 import pandas as pd
 import numpy as np
+import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 from torch.autograd import Variable
+import cv2
 
 #Dataset paths
 W300_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed/300W_cropped.csv"
-CK_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/Ck+-Processed/CK+_cropped.csv"
+CK_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/CK+-Processed/CK+_cropped.csv"
 #BP4D CSV still not made
 BP4D_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/BP4D_cropped.csv"
 
@@ -36,6 +38,9 @@ class W300Dataset(Dataset):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
       image = cv2.imread(image_path)
+      print("Extraced: " + image_path)
+      if(image.all() == None):
+         print("Missing: " + image_path)
       if(self.transform == True):
          image = self.transform(image)
       image_tensor = torch.Tensor(image)
@@ -62,8 +67,9 @@ class CKDataset(Dataset):
                                          at retrieval time
       """
       #self.root_dir = root_dir
+      print(csv_file)
       tempDF = pd.read_csv(csv_file)
-      for h in df.head():
+      for h in tempDF.head():
          if(h != "image_path"):
             tempDF = tempDF.drop([h],axis=1)
       self.images = tempDF
@@ -76,6 +82,9 @@ class CKDataset(Dataset):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
       image = cv2.imread(image_path)
+      print("Extracted: " + image_path)
+      if(image.all() == None):
+         print("Missing: " + image_path)
       if(self.transform == True):
          image = self.transform(image)
       image_tensor = torch.Tensor(image)

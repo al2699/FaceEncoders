@@ -5,6 +5,7 @@ import torchvision.models as models
 import os
 import data
 import random
+import cv2
 
 model_save_path = "/home/ICT2000/ahernandez/Documents/FaceEncoders/"
 
@@ -22,6 +23,7 @@ def main():
    loss_func = nn.MSELoss()
    #Could later use adam
    optimizer = optim.SGD(model.parameters(), lr=0.02, momentum=0.9)
+   print("Cuda available?: " + str(torch.cuda.is_available()))
    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
    model = model.to(device)
 
@@ -36,7 +38,7 @@ def main():
 
    #could improve upon this by using data loaders for mini-batch sampling
    epochs = 2001
-   steps = len(W300) + len(ck) #+ len(BP4D)
+   steps = len(w300) + len(ck) #+ len(BP4D)
    
    print("Beginning training...")
    for i in range(epochs):
@@ -46,20 +48,25 @@ def main():
       for j in range(len(w300_train_ind)):
          #300W dataset train step
          x_var, y_var = w300[w300_train_ind[j]]
+         #temp addition
+         x_var = x_var.unsqueeze(0)
+         x_var = x_var.view(1, 3, 224, 224)
          
          optimizer.zero_grad()
-         y_hat = model(x_var)
+         y_hat = model(x_var).view(-1, 1)
          loss = loss_func.forward(y_hat, y_var)
-         loss.backwards()
+         loss.backward()
          optimizer.step()
          
          #CK+ dataset train step
          x_var, y_var = ck[ck_train_ind[j]]
-         
+         x_var = x_var.unsqueeze(0)
+         x_var = x_var.view(1,3,224,224)
+
          optimizer.zero_grad()
-         y_hat = model(x_var)
+         y_hat = model(x_var).view(-1,1)
          loss = loss_func.forward(y_hat, y_var)
-         loss.backwards()
+         loss.backward()
          optimizer.step()
          
       if(i % 500 == 0):
@@ -106,10 +113,12 @@ def validate(valid_indices, dataset, model, loss_func):
    agg_loss = 0
    model.eval()
    for i in range(len(valid_indices)):
-      img, label = dataset[valid_indices[i]]
-      y_hat = model(img)
-      loss = loss_func.forward(y_hat, label)
-      agg_loss += loss
+      x_var, y_var = dataset[valid_indices[i]]
+      x_var = x_var.unsqueeze(0)
+      x_var = x_var.view(1, 3, 224, 224)
+      y_hat = model(img).view(-1,1)
+      loss = loss_func.forward(y_hat, y_var)
+      agg_loss += loss.data.numpy()
    print("Aggregate loss validation: " + str(agg_loss))
    print("Average loss: " + str(agg_loss / len(valid_indices)))
       
