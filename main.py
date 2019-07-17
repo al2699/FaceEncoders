@@ -8,7 +8,7 @@ import random
 import cv2
 
 model_save_path = "/home/ICT2000/ahernandez/Documents/FaceEncoders/"
-
+device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
 def init_weights(model):
@@ -24,7 +24,6 @@ def main():
    #Could later use adam
    optimizer = optim.SGD(model.parameters(), lr=0.02, momentum=0.9)
    print("Cuda available?: " + str(torch.cuda.is_available()))
-   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
    model = model.to(device)
 
    #Load datasets
@@ -48,11 +47,13 @@ def main():
       for j in range(len(w300_train_ind)):
          #300W dataset train step
          x_var, y_var = w300[w300_train_ind[j]]
+         y_var = y_var.to(device)
          #temp addition
          x_var = x_var.unsqueeze(0)
          x_var = x_var.view(1, 3, 224, 224)
          
          optimizer.zero_grad()
+         x_var = x_var.to(device)
          y_hat = model(x_var).view(-1, 1)
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
@@ -60,10 +61,12 @@ def main():
          
          #CK+ dataset train step
          x_var, y_var = ck[ck_train_ind[j]]
+         y_var = y_var.to(device)
          x_var = x_var.unsqueeze(0)
          x_var = x_var.view(1,3,224,224)
 
          optimizer.zero_grad()
+         x_var = x_var.to(device)
          y_hat = model(x_var).view(-1,1)
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
@@ -116,9 +119,12 @@ def validate(valid_indices, dataset, model, loss_func):
       x_var, y_var = dataset[valid_indices[i]]
       x_var = x_var.unsqueeze(0)
       x_var = x_var.view(1, 3, 224, 224)
-      y_hat = model(img).view(-1,1)
+      x_var = x_var.to(device)
+      y_var = y_var.to(device)
+      y_hat = model(x_var).view(-1,1)
       loss = loss_func.forward(y_hat, y_var)
-      agg_loss += loss.data.numpy()
+      cpu_loss = loss.cpu()
+      agg_loss += cpu_loss.data.numpy()
    print("Aggregate loss validation: " + str(agg_loss))
    print("Average loss: " + str(agg_loss / len(valid_indices)))
       
