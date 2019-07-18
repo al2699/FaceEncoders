@@ -29,10 +29,11 @@ def main():
    #Load datasets
    print("Loading data...")
    w300 = data.W300Dataset()
-   w300_train_ind, w300_test_ind, w300_validate_ind = train_test_validate_split(w300)
+   w300_train_ind, w300_test_ind, w300_validate_ind = w300.train_test_validation_split()
    ck = data.CKDataset()
-   ck_train_ind, ck_test_ind, ck_validate_ind = train_test_validate_split(ck)
-   #BP4D = BP4DDataset(os.getcwd())
+   ck_train_ind, ck_test_ind, ck_validate_ind = ck.train_test_validation_split()
+   bp4d = data.BP4DDataset()
+   bp4d_train_ind, bp4d_test_ind, bp4d_valid_int = bp4d.train_test_validation_split()
    print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
@@ -55,6 +56,8 @@ def main():
          optimizer.zero_grad()
          x_var = x_var.to(device)
          y_hat = model(x_var).view(-1, 1)
+         print("y_var: " + y_var)
+         print("y_hat: " + y_hat)
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
          optimizer.step()
@@ -68,6 +71,20 @@ def main():
          optimizer.zero_grad()
          x_var = x_var.to(device)
          y_hat = model(x_var).view(-1,1)
+         loss = loss_func.forward(y_hat, y_var)
+         loss.backward()
+         optimizer.step()
+
+         #BP4D dataset train step
+         x_var, y_var = bp4d[bp4d_train_ind[j]]
+         y_var = y_var.to(device)
+         #temp addition
+         x_var = x_var.unsqueeze(0)
+         x_var = x_var.view(1, 3, 224, 224)
+
+         optimizer.zero_grad()
+         x_var = x_var.to(device)
+         y_hat = model(x_var).view(-1, 1)
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
          optimizer.step()
@@ -88,29 +105,6 @@ def main():
    print("Saving model to: "+ model_save_path)
    torch.save(model, model_save_path)
 
-def train_test_validate_split(dataset):
-   arr = range(0, len(dataset))
-   arr = list(arr)
-   #10% valid, 10% testing, 80% training
-   test_amount = int(.10 * len(dataset))
-   train_indices = []
-   test_indices = []
-   validate_indices = []
-
-
-   for i in range(test_amount):
-      pick = random.randint(0, len(arr) - 1)
-      test_indices.append(arr[pick])
-      del arr[pick]
-
-   for i in range(test_amount):
-      pick = random.randint(0, len(arr) - 1)
-      validate_indices.append(arr[pick])
-      del arr[pick]
-   
-   train_indices = arr
-
-   return train_indices, test_indices, validate_indices
 
 def validate(valid_indices, dataset, model, loss_func):
    agg_loss = 0
@@ -124,8 +118,9 @@ def validate(valid_indices, dataset, model, loss_func):
       y_hat = model(x_var).view(-1,1)
       loss = loss_func.forward(y_hat, y_var)
       cpu_loss = loss.cpu()
+      if(i == 5): print("Random loss: " + str(loss.data.numpy()))
       agg_loss += cpu_loss.data.numpy()
-   print("Aggregate loss validation: " + str(agg_loss))
+   print("Aggregate loss: " + str(agg_loss))
    print("Average loss: " + str(agg_loss / len(valid_indices)))
       
 if __name__ == "__main__":
