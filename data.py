@@ -14,9 +14,9 @@ CK_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/CK+-Processed/CK+_cropp
 BP4D_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/BP4D_cropped.csv"
 
 #Split lists
-W300_split_list = ""
-CK_split_list = ""
-BP4D_split_list = ""
+W300_split_list = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed/split.csv"
+CK_split_list = "/data/deep/Alan/FacialEncodingDataset-OpenFace/CK+-Processed/split.csv"
+BP4D_split_list = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/split.csv"
 
 #TODO: Could create one master class with the general fomat of W300, 
 #BP4D, CK+ and later inherit from it
@@ -62,9 +62,10 @@ class W300Dataset(Dataset):
    def __len__(self):
       #must return the length of this dataset
       return len(self.images["image_path"])
-  
-   #Returns a list of the indices which include the rows of data for each
-   #respective portion of the split
+   
+   """
+   Returns a list of the indices which include the rows of data for each
+   respective portion of the split
    def train_test_validation_split(self):
       tempDF = pd.read_csv(W300_split_list)
       train_list = tempDF["train"].tolist()
@@ -72,6 +73,7 @@ class W300Dataset(Dataset):
       valid_list = tempDF["validation"].tolist()
 
       return train_list, test_list, valid_list
+   """
 
 """Cohn-Kanade dataset class"""
 class CKDataset(Dataset):
@@ -117,6 +119,7 @@ class CKDataset(Dataset):
       #must return the length of this dataset
       return len(self.images["image_path"])
 
+   """
    def train_test_validation_split(self):
       tempDF = pd.read_csv(W300_split_list)
       train_list = tempDF["train"].tolist()
@@ -124,3 +127,4 @@ class CKDataset(Dataset):
       valid_list = tempDF["validation"].tolist()
 
       return train_list, test_list, valid_list
+   """

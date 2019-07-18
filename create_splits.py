@@ -1,5 +1,6 @@
 import data
 import random
+import pandas as pd
 
 w300_split_path = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed/split.csv"
 ck_split_path = "/data/deep/Alan/FacialEncodingDataset-OpenFace/CK+-Processed/split.csv"
@@ -32,15 +33,22 @@ def train_test_validate_split(dataset):
 
 if __name__ == "__main__":
    w300 = data.W300Dataset()
-   ck = data.CK+Dataset()
+   ck = data.CKDataset()
    #bp4d = data.BP4DDataset()
 
    train, test, valid = train_test_validate_split(w300)
    d = {"train" : train, "test" : test, "validation" : valid}
-   tempDF = pd.DataFrame(d)
-   tempDF.to_csv(w300_split_path)
+   tempDF = pd.DataFrame.from_dict(d, orient="index").transpose()
+   tempDF.to_csv(w300_split_path, index=False)
 
-   train, test, valid = train_test_validate(ck)
+   train, test, valid = train_test_validate_split(ck)
    d = {"train" : train, "test" : test, "validation" : valid}
-   tempDF = pd.DataFrame(d)
-   tempDF.to_csv(ck_split_path)
+   tempDF = pd.DataFrame.from_dict(d, orient="index").transpose()
+   tempDF.to_csv(ck_split_path, index=False)
+  
+   """ 
+   train, test, valid = train_test_validate_split(bp4d)
+   d = {"train" : train, "test" : test, "validation" : valid}
+   tempDF = pd.DataFrame.from_dict(d, orient="index").transpose()
+   tempDF.to_csv(bp4d_split_path, index=False)
+   """
