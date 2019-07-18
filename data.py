@@ -63,7 +63,6 @@ class W300Dataset(Dataset):
       #must return the length of this dataset
       return len(self.images["image_path"])
    
-   """
    Returns a list of the indices which include the rows of data for each
    respective portion of the split
    def train_test_validation_split(self):
@@ -73,7 +72,6 @@ class W300Dataset(Dataset):
       valid_list = tempDF["validation"].tolist()
 
       return train_list, test_list, valid_list
-   """
 
 """Cohn-Kanade dataset class"""
 class CKDataset(Dataset):
@@ -119,7 +117,6 @@ class CKDataset(Dataset):
       #must return the length of this dataset
       return len(self.images["image_path"])
 
-   """
    def train_test_validation_split(self):
       tempDF = pd.read_csv(W300_split_list)
       train_list = tempDF["train"].tolist()
@@ -127,4 +124,3 @@ class CKDataset(Dataset):
       valid_list = tempDF["validation"].tolist()
 
       return train_list, test_list, valid_list
-   """
