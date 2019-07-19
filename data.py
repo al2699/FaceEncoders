@@ -45,7 +45,7 @@ class W300Dataset(Dataset):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
       image = cv2.imread(image_path)
-      #print("Extraced: " + image_path)
+      print("Extraced: " + image_path)
       if(image.all() == None):
          print("Missing: " + image_path)
       if(self.transform == True):
@@ -100,7 +100,7 @@ class CKDataset(Dataset):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
       image = cv2.imread(image_path)
-      #print("Extracted: " + image_path)
+      print("Extracted: " + image_path)
       if(image.all() == None):
          print("Missing: " + image_path)
       if(self.transform == True):
@@ -152,7 +152,7 @@ class BP4DDataset(Dataset):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
       image = cv2.imread(image_path)
-      #print("Extracted: " + image_path)
+      print("Extracted: " + image_path)
       if(image.all() == None):
          print("Missing: " + image_path)
       if(self.transform == True):
