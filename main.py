@@ -46,6 +46,7 @@ def main():
       #train on 300W dataset
       model.train()
       for j in range(len(w300_train_ind)):
+         print("Step: " + str(j))
          #300W dataset train step
          x_var, y_var = w300[w300_train_ind[j]]
          y_var = y_var.to(device)
@@ -56,8 +57,8 @@ def main():
          optimizer.zero_grad()
          x_var = x_var.to(device)
          y_hat = model(x_var).view(-1, 1)
-         print("y_var: " + y_var)
-         print("y_hat: " + y_hat)
+         print("y_var: " + str(y_var))
+         print("y_hat: " + str(y_hat))
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
          optimizer.step()
@@ -71,6 +72,8 @@ def main():
          optimizer.zero_grad()
          x_var = x_var.to(device)
          y_hat = model(x_var).view(-1,1)
+         print("y_var: " + str(y_var))
+         print("y_hat: " + str(y_hat))
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
          optimizer.step()
@@ -85,6 +88,8 @@ def main():
          optimizer.zero_grad()
          x_var = x_var.to(device)
          y_hat = model(x_var).view(-1, 1)
+         print("y_var: " + str(y_var))
+         print("y_hat: " + str(y_hat))
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
          optimizer.step()

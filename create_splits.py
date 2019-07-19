@@ -32,11 +32,10 @@ def train_test_validate_split(dataset):
    return train_indices, test_indices, validate_indices
 
 if __name__ == "__main__":
-   #w300 = data.W300Dataset()
-   #ck = data.CKDataset()
+   w300 = data.W300Dataset()
+   ck = data.CKDataset()
    bp4d = data.BP4DDataset()
 
-   """
    train, test, valid = train_test_validate_split(w300)
    d = {"train" : train, "test" : test, "validation" : valid}
    tempDF = pd.DataFrame.from_dict(d, orient="index").transpose()
@@ -46,7 +45,6 @@ if __name__ == "__main__":
    d = {"train" : train, "test" : test, "validation" : valid}
    tempDF = pd.DataFrame.from_dict(d, orient="index").transpose()
    tempDF.to_csv(ck_split_path, index=False)
-   """ 
 
    train, test, valid = train_test_validate_split(bp4d)
    d = {"train" : train, "test" : test, "validation" : valid}
