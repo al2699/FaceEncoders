@@ -38,7 +38,6 @@ def main():
 
    #could improve upon this by using data loaders for mini-batch sampling
    epochs = 2001
-   steps = len(w300) + len(ck) #+ len(BP4D)
    
    print("Beginning training...")
    for i in range(epochs):
@@ -62,7 +61,10 @@ def main():
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
          optimizer.step()
-         
+         print("x_var: " + str(x_var))
+         print("y_hat: " + str(y_var))
+    
+      for j in range(len(ck_train_ind)):     
          #CK+ dataset train step
          x_var, y_var = ck[ck_train_ind[j]]
          y_var = y_var.to(device)
@@ -77,7 +79,10 @@ def main():
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
          optimizer.step()
+         print("x_var: " + str(x_var))
+         print("y_hat: " + str(y_hat))
 
+      for j in range(len(bp4d_train_ind)):
          #BP4D dataset train step
          x_var, y_var = bp4d[bp4d_train_ind[j]]
          y_var = y_var.to(device)
@@ -93,12 +98,15 @@ def main():
          loss = loss_func.forward(y_hat, y_var)
          loss.backward()
          optimizer.step()
+         print("x_var: " + str(x_var))
+         print("y_hat: " + str(y_hat))
          
-      if(i  == 1):
+      if(i  == 0):
          print("300W validation:")
          validate(w300_validate_ind, w300, model, loss_func)
          print("CK+ validation:")
          validate(ck_validate_ind, ck, model, loss_func)
+         input("waiting for key press")
   
    print("Test/final loss: ")
    print("300W test:")
@@ -122,9 +130,10 @@ def validate(valid_indices, dataset, model, loss_func):
       y_var = y_var.to(device)
       y_hat = model(x_var).view(-1,1)
       loss = loss_func.forward(y_hat, y_var)
-      cpu_loss = loss.cpu()
-      if(i == 5): print("Random loss: " + str(loss.data.numpy()))
-      agg_loss += cpu_loss.data.numpy()
+      print("x_var: " + str(x_var))
+      print("y_hat: " + str(y_hat))
+      if i == 5: print("Random loss: " + str(loss.data))
+      agg_loss += loss.item()
    print("Aggregate loss: " + str(agg_loss))
    print("Average loss: " + str(agg_loss / len(valid_indices)))
       
