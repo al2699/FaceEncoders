@@ -18,11 +18,14 @@ W300_split_list = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed
 CK_split_list = "/data/deep/Alan/FacialEncodingDataset-OpenFace/CK+-Processed/split.csv"
 BP4D_split_list = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/split.csv"
 
+#Transform
+normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
 #TODO: Could create one master class with the general fomat of W300, 
 #BP4D, CK+ and later inherit from it
 """300 faces in the wild dataset class"""
 class W300Dataset(Dataset):
-   def __init__(self, csv_file=W300_CSV, transform=None):
+   def __init__(self, csv_file=W300_CSV, transform=normalize):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -45,9 +48,7 @@ class W300Dataset(Dataset):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
       image = cv2.imread(image_path)
-      print("Extraced: " + image_path)
-      if(image.all() == None):
-         print("Missing: " + image_path)
+      #print("Extraced: " + image_path)
       if(self.transform == True):
          image = self.transform(image)
       image_tensor = torch.Tensor(image)
@@ -76,7 +77,7 @@ class W300Dataset(Dataset):
 
 """Cohn-Kanade dataset class"""
 class CKDataset(Dataset):
-   def __init__(self, csv_file=CK_CSV, transform=None):
+   def __init__(self, csv_file=CK_CSV, transform=normalize):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -100,9 +101,7 @@ class CKDataset(Dataset):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
       image = cv2.imread(image_path)
-      print("Extracted: " + image_path)
-      if(image.all() == None):
-         print("Missing: " + image_path)
+      #print("Extracted: " + image_path)
       if(self.transform == True):
          image = self.transform(image)
       image_tensor = torch.Tensor(image)
@@ -128,7 +127,7 @@ class CKDataset(Dataset):
 
 """BP4D  dataset class"""
 class BP4DDataset(Dataset):
-   def __init__(self, csv_file=BP4D_CSV, transform=None):
+   def __init__(self, csv_file=BP4D_CSV, transform=normalize):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -152,9 +151,7 @@ class BP4DDataset(Dataset):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
       image = cv2.imread(image_path)
-      print("Extracted: " + image_path)
-      if(image.all() == None):
-         print("Missing: " + image_path)
+      #print("Extracted: " + image_path)
       if(self.transform == True):
          image = self.transform(image)
       image_tensor = torch.Tensor(image)
