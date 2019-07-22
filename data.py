@@ -8,15 +8,15 @@ from torch.autograd import Variable
 import cv2
 
 #Dataset paths
-W300_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed/300W_cropped.csv"
-CK_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/CK+-Processed/CK+_cropped.csv"
+W300_CSV = "/data1/Alan/300W-Processed/300W_cropped.csv"
+CK_CSV = "/data1/Alan/CK+-Processed/CK+_cropped.csv"
 #BP4D CSV still not made
-BP4D_CSV = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/BP4D_cropped.csv"
+BP4D_CSV = "/data1/Alan/BP4D/BP4D_cropped.csv"
 
 #Split lists
-W300_split_list = "/data/deep/Alan/FacialEncodingDataset-OpenFace/300W-Processed/split.csv"
-CK_split_list = "/data/deep/Alan/FacialEncodingDataset-OpenFace/CK+-Processed/split.csv"
-BP4D_split_list = "/data/deep/Alan/FacialEncodingDataset-OpenFace/BP4D/split.csv"
+W300_split_list = "/data1/Alan/300W-Processed/split.csv"
+CK_split_list = "/data1/Alan/CK+-Processed/split.csv"
+BP4D_split_list = "/data1/Alan/BP4D/split.csv"
 
 #Transform
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
@@ -48,7 +48,7 @@ class W300Dataset(Dataset):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
       image = cv2.imread(image_path)
-      #print("Extraced: " + image_path)
+      #print("Extracted: " + image_path)
       if(self.transform == True):
          image = self.transform(image)
       image_tensor = torch.Tensor(image)

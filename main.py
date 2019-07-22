@@ -8,7 +8,7 @@ import random
 import cv2
 
 model_save_path = "/home/ICT2000/ahernandez/Documents/FaceEncoders/"
-device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
 def init_weights(model):
@@ -33,7 +33,7 @@ def main():
    ck = data.CKDataset()
    ck_train_ind, ck_test_ind, ck_validate_ind = ck.train_test_validation_split()
    bp4d = data.BP4DDataset()
-   bp4d_train_ind, bp4d_test_ind, bp4d_validate_int = bp4d.train_test_validation_split()
+   bp4d_train_ind, bp4d_test_ind, bp4d_validate_ind = bp4d.train_test_validation_split()
    print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
@@ -101,7 +101,7 @@ def main():
          #print("x_var: " + str(x_var))
          #print("y_hat: " + str(y_hat))
       
-      if(i  == 0):
+      if(i % 10 == 0):
          print("300W validation:")
          validate(w300_validate_ind, w300, model, loss_func)
          print("CK+ validation:")
