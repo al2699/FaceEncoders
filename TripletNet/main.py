@@ -8,6 +8,7 @@ import random
 import cv2
 
 model_save_path = "/home/ICT2000/ahernandez/Documents/FaceEncoders/"
+fec_test_path = "" #TODO: FILL THIS IN
 device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
@@ -15,7 +16,7 @@ def init_weights(model):
    model.fc.weight.data.fill_(0.01)
    return model
 
-#Assuming img1Embed and img2Embed are most similar img embeddings
+#ASSSUMING img1Embed and img2Embed are most similar img embeddings
 def triplet_loss(img1Embed, img2Embed, img3Embed, margin):
    #Let sim_pair := e1 - e2; not_sim_pair1 := e1 - e3; not_sim_pair2 := e2 - e3
    similar_pair_diff = torch.sub(img1Embed, img2Embed)
@@ -41,19 +42,21 @@ def triplet_loss(img1Embed, img2Embed, img3Embed, margin):
 
 def main():
    model = models.resnet50(pretrained=True)
+   #Output to 16-d embedding
    model.fc = nn.Linear(in_features=2048, out_features=16)
    model = init_weights(model)
    model.train()
-   #loss_func = 
    #Could later use adam
+   #Loss func goes here
    optimizer = optim.SGD(model.parameters(), lr=0.02, momentum=0.2)
    print("Cuda available?: " + str(torch.cuda.is_available()))
    model = model.to(device)
 
    #Load datasets
    print("Loading data...")
-   w300 = data.W300Dataset()
-   w300_train_ind, w300_test_ind, w300_validate_ind = w300.train_test_validation_split()
+   fec = data.FECDataset()
+   fec_train_ind, fec_valid_ind = fec.train_valid_split()
+   fec_test = data.FECDataset(fec_test_path)
    print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
@@ -62,102 +65,68 @@ def main():
    print("Beginning training...")
    for i in range(epochs):
       print("epoch: " + str(i))
-      #train on 300W dataset
+      #train on FEC dataset
       model.train()
-      for j in range(len(w300_train_ind)):
-         #print("Step: " + str(j))
-         #300W dataset train step
-         x_var, y_var = w300[w300_train_ind[j]]
-         y_var = y_var.to(device)
-         #temp addition
-         x_var = x_var.unsqueeze(0)
-         x_var = x_var.view(1, 3, 224, 224)
+      for j in range(len(fec_train_ind)):
+         #FEC dataset train step
+         img1, img2, img3, margin = fec[fec_train_ind[j]]
+         img1 = img1.unsqueeze(0)
+         img1 = img1.view(1,3,224,224)
+         img2 = img2.unsqueeze(0)
+         img2 = img2.view(1,3,224,224)
+         img3 = img3.unsqueeze(0)
+         img3 = img3.view(1,3,224,224)
          
          optimizer.zero_grad()
-         x_var = x_var.to(device)
-         y_hat = model(x_var).view(-1, 1)
-         #print("y_var: " + str(y_var))
-         #print("y_hat: " + str(y_hat))
-         loss = loss_func.forward(y_hat, y_var)
-         loss.backward()
-         optimizer.step()
-         #print("x_var: " + str(x_var))
-         #print("y_hat: " + str(y_var))
-    
-      for j in range(len(ck_train_ind)):     
-         #CK+ dataset train step
-         x_var, y_var = ck[ck_train_ind[j]]
-         y_var = y_var.to(device)
-         x_var = x_var.unsqueeze(0)
-         x_var = x_var.view(1,3,224,224)
+         img1 = img1.to(device)
+         y_hat1 = model(img1)
+         img2 = img2.to(device)
+         y_hat2 = model(img2)
+         img3 = img3.to(device)
+         y_hat3 = model(img3)
 
-         optimizer.zero_grad()
-         x_var = x_var.to(device)
-         y_hat = model(x_var).view(-1,1)
-         #print("y_var: " + str(y_var))
-         #print("y_hat: " + str(y_hat))
-         loss = loss_func.forward(y_hat, y_var)
+         loss = triplet_loss(y_hat1, y_hat2, y_hat3, margin)
          loss.backward()
          optimizer.step()
-         #print("x_var: " + str(x_var))
-         #print("y_hat: " + str(y_hat))
-      
-      for j in range(len(bp4d_train_ind)):
-         #BP4D dataset train step
-         x_var, y_var = bp4d[bp4d_train_ind[j]]
-         y_var = y_var.to(device)
-         #temp addition
-         x_var = x_var.unsqueeze(0)
-         x_var = x_var.view(1, 3, 224, 224)
-
-         optimizer.zero_grad()
-         x_var = x_var.to(device)
-         y_hat = model(x_var).view(-1, 1)
-         #print("y_var: " + str(y_var))
-         #print("y_hat: " + str(y_hat))
-         loss = loss_func.forward(y_hat, y_var)
-         loss.backward()
-         optimizer.step()
-         #print("x_var: " + str(x_var))
-         #print("y_hat: " + str(y_hat))
       
       if(i % 10 == 0):
-         print("300W validation:")
-         validate(w300_validate_ind, w300, model, loss_func)
-         print("CK+ validation:")
-         validate(ck_validate_ind, ck, model, loss_func)
-         print("BP4D validation:")
-         validate(bp4d_validate_ind, bp4d, model, loss_func)
-         #input("waiting for key press")
+         print("Validation:")
+         validate(fec_valid_ind, fec, model)
   
    print("Test/final loss: ")
-   print("300W test:")
-   validate(w300_test_ind, w300, model, loss_func)
-   print("CK+ test")
-   validate(ck_test_ind, ck, model, loss_func)
-   
+   test(fec, model)
+
    #save model weights
    print("Saving model to: "+ model_save_path)
    torch.save(model, model_save_path)
 
 
-def validate(valid_indices, dataset, model, loss_func):
+def validate(valid_indices, dataset, model):
    agg_loss = 0
    model.eval()
    for i in range(len(valid_indices)):
       #print("Validating: " + str(type(dataset)))
       #print("Grabbed index: " + str(valid_indices[i]) + " Len: " + str(len(valid_indices)))
-      x_var, y_var = (None,None) #initialize for interpreter
+      img1, img2, img3, margin  = (None, None, None, 0.0) #initialize for interpreter
       try:
-         x_var, y_var = dataset[int(valid_indices[i])]
+         img1, img2, img3, margin  = dataset[i]
       except:
-         break  
-      x_var = x_var.unsqueeze(0)
-      x_var = x_var.view(1, 3, 224, 224)
-      x_var = x_var.to(device)
-      y_var = y_var.to(device)
-      y_hat = model(x_var).view(-1,1)
-      loss = loss_func.forward(y_hat, y_var)
+         break
+      img1 = img1.unsqueeze(0)
+      img1 = img1.view(1, 3, 224, 224)
+      img2 = img2.unsqueeze(0)
+      img2 = img2.view(1, 3, 224, 224)
+      img3 = img3.unsqueeze(0)
+      img3 = img3.view(1, 3, 224, 224)
+
+      img1 = img1.to(device)
+      y_hat1 = model(img1)
+      img2 = img2.to(device)
+      y_hat2 = model(img2)
+      img3 = img3.to(device)
+      y_hat3 = model(img3)
+
+      loss = triplet_loss(y_hat1, y_hat2, y_hat3, margin)
       #print("x_var: " + str(x_var))
       #print("y_hat: " + str(y_hat))
       if i == 5: print("Random loss: " + str(loss.data))
@@ -165,5 +134,28 @@ def validate(valid_indices, dataset, model, loss_func):
    print("Aggregate loss: " + str(agg_loss))
    print("Average loss: " + str(agg_loss / len(valid_indices)))
 
+def test(dataset, model):
+   agg_loss = 0
+   for i in range(len(dataset)):
+      img1, img2, img3, margin  = dataset[i]
+
+      img1 = img1.unsqueeze(0)
+      img1 = img1.view(1, 3, 224, 224)
+      img2 = img2.unsqueeze(0)
+      img2 = img2.view(1, 3, 224, 224)
+      img3 = img3.unsqueeze(0)
+      img3 = img3.view(1, 3, 224, 224)
+
+      img1 = img1.to(device)
+      y_hat1 = model(img1)
+      img2 = img2.to(device)
+      y_hat2 = model(img2)
+      img3 = img3.to(device)
+      y_hat3 = model(img3)
+    
+      loss = triplet_loss(y_hat1, y_hat2, y_hat3, margin)
+      agg_loss += loss.item()
+   print("Agg loss: " + str(agg_loss))
+   print("Average loss: " + str(agg_loss/len(dataset)))
 if __name__ == "__main__":
-   main()   
+   main()
