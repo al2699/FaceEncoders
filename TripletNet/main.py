@@ -98,7 +98,7 @@ def main():
 
    #save model weights
    print("Saving model to: "+ model_save_path)
-   torch.save(model, model_save_path)
+   torch.save(model.state_dict(), model_save_path)
 
 
 def validate(valid_indices, dataset, model):
