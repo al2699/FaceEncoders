@@ -7,8 +7,8 @@ import data
 import random
 import cv2
 
-model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/mod.pt"
-device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
+model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/model_finetuned_750e.pt"
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
 def init_weights(model):
@@ -17,8 +17,8 @@ def init_weights(model):
 
 def main():
    model = models.resnet50(pretrained=True)
-   for param in model.parameters():
-      param.requires_grad=False
+   #for param in model.parameters():
+      #param.requires_grad=False
    model.fc = nn.Linear(in_features=2048, out_features=41)
    model = init_weights(model)
    model.train()
@@ -47,9 +47,10 @@ def main():
       #train on 300W dataset
       model.train()
       for j in range(len(w300_train_ind)):
-         #print("Step: " + str(j))
+         #random data point to avoid temporal benefits
+         dp_index = random.randint(0, len(w300_train_ind) - 1)
          #300W dataset train step
-         x_var, y_var = w300[w300_train_ind[j]]
+         x_var, y_var = w300[w300_train_ind[dp_index]]
          y_var = y_var.to(device)
          #temp addition
          x_var = x_var.unsqueeze(0)
@@ -66,9 +67,10 @@ def main():
          #print("x_var: " + str(x_var))
          #print("y_hat: " + str(y_var))
     
-      for j in range(len(ck_train_ind)):     
+      for j in range(len(ck_train_ind)):
+         dp_index = random.randint(0, len(ck_train_ind) - 1)
          #CK+ dataset train step
-         x_var, y_var = ck[ck_train_ind[j]]
+         x_var, y_var = ck[ck_train_ind[dp_index]]
          y_var = y_var.to(device)
          x_var = x_var.unsqueeze(0)
          x_var = x_var.view(1,3,224,224)
@@ -85,8 +87,9 @@ def main():
          #print("y_hat: " + str(y_hat))
       
       for j in range(len(bp4d_train_ind)):
+         dp_index = random.randint(0, len(bp4d_train_ind) - 1)
          #BP4D dataset train step
-         x_var, y_var = bp4d[bp4d_train_ind[j]]
+         x_var, y_var = bp4d[bp4d_train_ind[dp_index]]
          y_var = y_var.to(device)
          #temp addition
          x_var = x_var.unsqueeze(0)
