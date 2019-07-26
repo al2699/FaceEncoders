@@ -7,8 +7,9 @@ import os
 import random
 import cv2
 
-model_save_path = "/home/ICT2000/ahernandez/Documents/FaceEncoders/"
+model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/TripletNet"
 fec_test_path = "" #TODO: FILL THIS IN
+#TODO: Change to cuda:0 when on 
 device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same

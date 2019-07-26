@@ -8,7 +8,7 @@ import random
 import cv2
 
 model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/mod.pt"
-device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
 def init_weights(model):
@@ -17,12 +17,14 @@ def init_weights(model):
 
 def main():
    model = models.resnet50(pretrained=True)
+   for param in model.parameters():
+      param.requires_grad=False
    model.fc = nn.Linear(in_features=2048, out_features=41)
    model = init_weights(model)
    model.train()
    loss_func = nn.MSELoss()
    #Could later use adam
-   optimizer = optim.SGD(model.parameters(), lr=0.02, momentum=0.2)
+   optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.2)
    print("Cuda available?: " + str(torch.cuda.is_available()))
    model = model.to(device)
 
@@ -37,7 +39,7 @@ def main():
    print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
-   epochs = 2001
+   epochs = 750
    
    print("Beginning training...")
    for i in range(epochs):

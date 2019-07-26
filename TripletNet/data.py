@@ -9,8 +9,8 @@ import cv2
 import statistics
 
 #Dataset paths
-fec_csv_train = "/data/deep/Alan/FacialEncodingDataset-OpenFace/train.csv"
-fec_csv_test = "/data/deep/Alan/FacialEncodingDataset-OpenFace/test.csv"
+fec_csv_train = "/data1/Alan/GoogleDataset/fec_train_new.csv"
+fec_csv_test = "/data1/Alan/GoogleDataset/fec_test_new.csv"
 
 #Margin map
 margin_map = {"ONE_CLASS_TRIPLET" : 0.1, "TWO_CLASS_TRIPLET" : 0.2, "THREE_CLASS_TRIPLET" : 0.2}
