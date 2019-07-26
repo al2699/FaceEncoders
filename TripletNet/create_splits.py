@@ -2,7 +2,7 @@ import data
 import random
 import pandas as pd
 
-w300_split_path = "/data/deep/Alan/FacialEncodingDataset-OpenFace/GoogleDataset-Train/split.csv"
+save_path = "/data1/Alan/GoogleDataset/split.csv"
 
 def train_validate_split(dataset):
    arr = range(0, len(dataset))

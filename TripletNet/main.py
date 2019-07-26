@@ -7,10 +7,10 @@ import os
 import random
 import cv2
 
-model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/TripletNet"
-fec_test_path = "" #TODO: FILL THIS IN
+model_save_path = "/data2/Alan/FaceEncoders/TripletNet/triplet_finetuned.pt"
+fec_test_path = "/data1/Alan/GoogleDataset/fec_test_new1.csv" #TODO: FILL THIS IN
 #TODO: Change to cuda:0 when on 
-device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
 def init_weights(model):
@@ -42,6 +42,7 @@ def triplet_loss(img1Embed, img2Embed, img3Embed, margin):
    return loss
 
 def main():
+   #import resnet 50 layers to fine tune
    model = models.resnet50(pretrained=True)
    #Output to 16-d embedding
    model.fc = nn.Linear(in_features=2048, out_features=16)
@@ -57,7 +58,7 @@ def main():
    print("Loading data...")
    fec = data.FECDataset()
    fec_train_ind, fec_valid_ind = fec.train_valid_split()
-   fec_test = data.FECDataset(fec_test_path)
+   fec_test = data.FECDataset(csv_file=fec_test_path)
    print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
@@ -69,8 +70,10 @@ def main():
       #train on FEC dataset
       model.train()
       for j in range(len(fec_train_ind)):
+         #Grab random data point in order to avoid temporal benefits
+         dp_index = random.randint(0, len(fec_train_ind) - 1)
          #FEC dataset train step
-         img1, img2, img3, margin = fec[fec_train_ind[j]]
+         img1, img2, img3, margin = fec[fec_train_ind[dp_index]]
          img1 = img1.unsqueeze(0)
          img1 = img1.view(1,3,224,224)
          img2 = img2.unsqueeze(0)

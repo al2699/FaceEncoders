@@ -10,7 +10,8 @@ import statistics
 
 #Dataset paths
 fec_csv_train = "/data1/Alan/GoogleDataset/fec_train_new.csv"
-fec_csv_test = "/data1/Alan/GoogleDataset/fec_test_new.csv"
+fec_csv_test = "/data1/Alan/GoogleDataset/fec_test_new1.csv"
+split_path = "/data1/Alan/GoogleDataset/split.csv"
 
 #Margin map
 margin_map = {"ONE_CLASS_TRIPLET" : 0.1, "TWO_CLASS_TRIPLET" : 0.2, "THREE_CLASS_TRIPLET" : 0.2}
