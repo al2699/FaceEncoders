@@ -29,4 +29,4 @@ if __name__ == "__main__":
    train, valid = train_validate_split(fec)
    d = {"train" : train, "validation" : valid}
    tempDF = pd.DataFrame.from_dict(d, orient="index").transpose()
-   tempDF.to_csv(fec_split_path, index=False)
+   tempDF.to_csv(save_path, index=False)

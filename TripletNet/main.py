@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.autograd import Variable
 import torchvision.models as models
 import os
-#import data
+import data
 import random
 import cv2
 
@@ -22,13 +23,13 @@ def triplet_loss(img1Embed, img2Embed, img3Embed, margin):
    #Let sim_pair := e1 - e2; not_sim_pair1 := e1 - e3; not_sim_pair2 := e2 - e3
    similar_pair_diff = torch.sub(img1Embed, img2Embed)
    #might be better to flatten out to 1 and take regular euclidean norm
-   sim_pair_norm = torch.norm(similar_pair_diff, p=2, dim=16)
-   sim_pair_ns = torch.mul(sim_pair, sim_pair)
+   sim_pair_norm = torch.norm(similar_pair_diff, p=2, dim=-1)
+   sim_pair_ns = torch.mul(sim_pair_norm, sim_pair_norm)
    not_sim_diff1 = torch.sub(img1Embed,img3Embed)
-   not_sim_norm1 = torch.norm(not_sim_diff1, p=2, dim=16)
+   not_sim_norm1 = torch.norm(not_sim_diff1, p=2, dim=-1)
    not_sim_ns1 = torch.mul(not_sim_norm1, not_sim_norm1)
    not_sim_diff2 = torch.sub(img2Embed, img3Embed)
-   not_sim_norm2 = torch.norm(not_sim_diff2, p=2, dim=16)
+   not_sim_norm2 = torch.norm(not_sim_diff2, p=2, dim=-1)
    not_sim_ns2 = torch.mul(not_sim_norm2, not_sim_norm2)
    
    #intermediate steps
@@ -38,7 +39,13 @@ def triplet_loss(img1Embed, img2Embed, img3Embed, margin):
    f_add2 = torch.add(diff2, margin)
 
    #Rest of loss
-   loss = torch.add(torch.max(0, f_add1), torch.max(0, f_add2))
+   zero_tensor = torch.Tensor([0])
+   zero_var = Variable(zero_tensor, requires_grad=False)
+   zero_var = zero_var.to(device)
+   f = torch.max(zero_var, f_add1)
+   s = torch.max(zero_var, f_add2)
+   loss = torch.add(f, s)
+   #print("Loss: " + str(loss))
    return loss
 
 def main():
@@ -62,7 +69,7 @@ def main():
    print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
-   epochs = 2001
+   epochs = 1
    
    print("Beginning training...")
    for i in range(epochs):
@@ -108,7 +115,8 @@ def main():
 def validate(valid_indices, dataset, model):
    agg_loss = 0
    model.eval()
-   for i in range(len(valid_indices)):
+   validate_size = int(len(dataset) * 0.1)
+   for i in range(len(validate_size)):
       #print("Validating: " + str(type(dataset)))
       #print("Grabbed index: " + str(valid_indices[i]) + " Len: " + str(len(valid_indices)))
       img1, img2, img3, margin  = (None, None, None, 0.0) #initialize for interpreter

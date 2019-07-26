@@ -19,6 +19,25 @@ margin_map = {"ONE_CLASS_TRIPLET" : 0.1, "TWO_CLASS_TRIPLET" : 0.2, "THREE_CLASS
 #Transform
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
+def get_mode(lis):
+   mode = None
+   try:
+      mode = statistics.mode(lis)
+   except:
+      onesL = 0
+      twosL = 0
+      threesL = 0
+      for num in lis:
+         if num == 1:
+            onesL += 1
+         elif num == 2:
+            twosL += 1
+         else:
+            threesL += 1
+      tempDict = {onesL : 1, twosL : 2, threesL : 3}
+      mode = tempDict[max(onesL, twosL, threesL)]
+   return mode
+
 """Facial Expression Comparison dataset class"""
 class FECDataset(Dataset):
    #Uses train dataset csv by default. Can createa test dataset by passing in path.
@@ -43,9 +62,10 @@ class FECDataset(Dataset):
       votes = []
       img_options = [1,2,3]
       for i in range(1, 7):
-         ann_key = "Annotator" + str(i) + "_id"
+         ann_key = "Annotation" + str(i)
          votes.append(int(row[ann_key]))
-      furthest_img_ind = statistics.mode(votes)
+      #print("Choosing from: " + str(votes))
+      furthest_img_ind = get_mode(votes)
      
       #Extract images and label them based on whether or not they are
       #similar to each other
