@@ -79,6 +79,7 @@ def main():
       for j in range(len(fec_train_ind)):
          #Grab random data point in order to avoid temporal benefits
          dp_index = random.randint(0, len(fec_train_ind) - 1)
+         print("j: " + str(j))
          #FEC dataset train step
          img1, img2, img3, margin = fec[fec_train_ind[dp_index]]
          img1 = img1.unsqueeze(0)
