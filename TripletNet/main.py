@@ -89,6 +89,7 @@ def main():
          img3 = img3.unsqueeze(0)
          img3 = img3.view(1,3,224,224)
          
+         #Add model to cuda device and get y_hat
          optimizer.zero_grad()
          img1 = img1.to(device)
          y_hat1 = model(img1)
