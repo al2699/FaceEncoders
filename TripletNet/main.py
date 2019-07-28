@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -118,7 +120,7 @@ def validate(valid_indices, dataset, model):
    agg_loss = 0
    model.eval()
    validate_size = int(len(dataset) * 0.1)
-   for i in range(len(validate_size)):
+   for i in range(validate_size):
       #print("Validating: " + str(type(dataset)))
       #print("Grabbed index: " + str(valid_indices[i]) + " Len: " + str(len(valid_indices)))
       img1, img2, img3, margin  = (None, None, None, 0.0) #initialize for interpreter
