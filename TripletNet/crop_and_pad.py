@@ -9,10 +9,11 @@ def get_pil_image(img_path):
    return toPImage(toTensor(img_path))
 
 def pad_iamge(img_path, side):
-   p_img = get_pil_image(img_path
-)
+   p_img = get_pil_image(img_path)
+
    if side == "height":
-      
+      #Then we pad the the height until height == width
+            
    else:
 
 csv_path = ""
