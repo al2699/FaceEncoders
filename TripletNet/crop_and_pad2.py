@@ -4,8 +4,8 @@ from PIL import Image
 import pandas as pd
 
 #TODO: FILL THIS IN
-csv_path = "/home/ICT2000/ahernandez/Downloads/fec_train_non_dead1.csv"
-save_path = "/home/ICT2000/ahernandez/Downloads/fec_train_new_crop.csv"
+csv_path = "/home/ICT2000/ahernandez/Downloads/fec_test_good.csv"
+save_path = "/home/ICT2000/ahernandez/Downloads/fec_test_new_crop.csv"
 
 #Helper function
 def get_pil_image(img_path):
@@ -66,13 +66,16 @@ if __name__ == "__main__":
       p_img1 = get_crop_image(i, 1)
       p_img2 = get_crop_image(i, 2)
       p_img3 = get_crop_image(i, 3)
-      new_path1 = tempDF["image1"][i].replace("GoogleDataset", "GoogleDataset-new-crop")
-      new_path2 = tempDF["image2"][i].replace("GoogleDataset", "GoogleDataset-new-crop")
-      new_path3 = tempDF["image3"][i].replace("GoogleDataset", "GoogleDataset-new-crop")
+      new_csv_path1 = tempDF["image1"][i].replace("/home/ICT2000/ahernandez/Downloads/GoogleDataset-Test/", "test/")
+      new_csv_path2 = tempDF["image2"][i].replace("/home/ICT2000/ahernandez/Downloads/GoogleDataset-Test/", "test/")
+      new_csv_path3 = tempDF["image3"][i].replace("/home/ICT2000/ahernandez/Downloads/GoogleDataset-Test/", "test/")
+      new_path1 = tempDF["image1"][i].replace("GoogleDataset-Test", "GoogleDataset-Test-new-crop")
+      new_path2 = tempDF["image2"][i].replace("GoogleDataset-Test", "GoogleDataset-Test-new-crop")
+      new_path3 = tempDF["image3"][i].replace("GoogleDataset-Test", "GoogleDataset-Test-new-crop")
       pad_save_image(p_img1, new_path1)
       pad_save_image(p_img2, new_path2)
       pad_save_image(p_img3, new_path3)
-      tempDF["image1"][i] = new_path1
-      tempDF["image2"][i] = new_path2
-      tempDF["image3"][i] = new_path3
+      tempDF["image1"][i] = new_csv_path1
+      tempDF["image2"][i] = new_csv_path2
+      tempDF["image3"][i] = new_csv_path3
    tempDF.to_csv(save_path, index=False)
