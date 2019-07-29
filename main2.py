@@ -7,7 +7,7 @@ import data
 import random
 import cv2
 
-model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/model_finetuned_750e.pt"
+model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/model_finetuned_400e.pt"
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
@@ -39,7 +39,7 @@ def main():
    print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
-   epochs = 750
+   epochs = 400
    
    print("Beginning training...")
    for i in range(epochs):
