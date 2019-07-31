@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/ICT2000/ahernandez/anaconda3/envs/myenv/bin/python3
 
 import torch
 import torch.nn as nn
