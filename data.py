@@ -6,26 +6,27 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 from torch.autograd import Variable
 import cv2
+from PIL import Image
 
 #Dataset paths
 W300_CSV = "/data1/Alan/300W-Processed/300W_cropped.csv"
 CK_CSV = "/data1/Alan/CK+-Processed/CK+_cropped.csv"
-#BP4D CSV still not made
-BP4D_CSV = "/data1/Alan/BP4D/BP4D_cropped.csv"
+
+bp4d_train = "/data1/Alan/BP4D/train.csv"
+bp4d_test = "/data1/Alan/BP4D/test.csv"
+bp4d_valid = "/data1/Alan/BP4D/valid.csv"
 
 #Split lists
 W300_split_list = "/data1/Alan/300W-Processed/split.csv"
 CK_split_list = "/data1/Alan/CK+-Processed/split.csv"
 BP4D_split_list = "/data1/Alan/BP4D/split.csv"
 
-#Transform
-normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
 #TODO: Could create one master class with the general fomat of W300, 
 #BP4D, CK+ and later inherit from it
 """300 faces in the wild dataset class"""
 class W300Dataset(Dataset):
-   def __init__(self, csv_file=W300_CSV, transform=normalize):
+   def __init__(self, csv_file=W300_CSV, transform=None):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -77,7 +78,7 @@ class W300Dataset(Dataset):
 
 """Cohn-Kanade dataset class"""
 class CKDataset(Dataset):
-   def __init__(self, csv_file=CK_CSV, transform=normalize):
+   def __init__(self, csv_file=CK_CSV, transform=None):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -127,7 +128,7 @@ class CKDataset(Dataset):
 
 """BP4D  dataset class"""
 class BP4DDataset(Dataset):
-   def __init__(self, csv_file=BP4D_CSV, transform=normalize):
+   def __init__(self, csv_file, transform=None):
       """
       Args:
          csv_file (string): path to the CSV file
@@ -144,33 +145,22 @@ class BP4DDataset(Dataset):
       self.images = tempDF
       tempDF = pd.read_csv(csv_file)
       self.labels = tempDF.drop(["image_path"], axis=1)
+      self.labels = self.labels.values
       self.transform = transform
 
    #Returns the ith row of our dataframe
    def __getitem__(self, idx):
       #assuming no transformation
       image_path = self.images["image_path"][idx]
-      image = cv2.imread(image_path)
+      image = Image.open(image_path)
       #print("Extracted: " + image_path)
-      if(self.transform == True):
+      if self.transform is not None:
+         #print("Doing t")
          image = self.transform(image)
-      image_tensor = torch.Tensor(image)
-      image = Variable(image_tensor, requires_grad=False)
-      #MAYBE CHANGE TO FLOAT16 LATER
-      label = np.asarray(self.labels.loc[idx].tolist(), dtype=np.float16)
-      label_tensor = torch.Tensor(label).view(-1,1)
-      label = Variable(label_tensor, requires_grad=False)
+      label = self.labels[idx]
       #return a tuple of image 
       return (image, label)
 
    def __len__(self):
       #must return the length of this dataset
       return len(self.images["image_path"])
-
-   def train_test_validation_split(self):
-      tempDF = pd.read_csv(W300_split_list)
-      train_list = tempDF["train"].tolist()
-      test_list = tempDF["test"].tolist()
-      valid_list = tempDF["validation"].tolist()
-
-      return train_list, test_list, valid_list

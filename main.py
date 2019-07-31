@@ -1,13 +1,21 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torchvision import transforms
+from torch.utils.data import DataLoader
 import torchvision.models as models
 import os
+import shutil
 import data
 import random
 import cv2
 
-model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/model_finetuned_750e.pt"
+#CSV paths
+bp4d_train = "/data1/Alan/BP4D/train.csv"
+bp4d_test = "/data1/Alan/BP4D/test.csv"
+bp4d_valid = "/data1/Alan/BP4D/valid.csv"
+
+model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/model_finetuned_new750.pt"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
@@ -15,140 +23,127 @@ def init_weights(model):
    model.fc.weight.data.fill_(0.01)
    return model
 
+def pcc(output, target):
+   x = output
+   y = target
+
+   vx = (x - torch.mean(x)).double()
+   vy = (y - torch.mean(y)).double()
+
+   cost = torch.sum(vx * vy) / (torch.sqrt(torch.sum(vx ** 2)) * torch.sqrt(torch.sum(vy ** 2)))
+   return cost
+
+def save_checkpoint(state, is_best, filename='checkpoint.pth'):
+    """Saves checkpoint to disk"""
+    directory = "/home/ICT2000/ahernandez/FaceEncoders/"
+    filename = directory + filename
+    torch.save(state, filename)
+    if is_best:
+        shutil.copyfile(filename, directory + 'model_best.pth')
+
+def validate(model, data_loader, device=None):
+    correct_pred, num_examples = 0, 0
+    for i, (x, y) in enumerate(data_loader):
+            
+        x = x.to(device)
+        y = y.to(device)
+
+        y_hat = model(x)
+        cost = pcc(y_hat, y)
+    return cost
+   
 def main():
    model = models.resnet50(pretrained=True)
    #for param in model.parameters():
       #param.requires_grad=False
-   model.fc = nn.Linear(in_features=2048, out_features=41)
+   model.fc = nn.Linear(in_features=2048, out_features=23)
    model = init_weights(model)
    model.train()
+   #loss_func = nn.MSELoss()
+   #loss_func = pcc
    loss_func = nn.MSELoss()
    #Could later use adam
    optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.01)
    print("Cuda available?: " + str(torch.cuda.is_available()))
    model = model.to(device)
 
+   custom_transform = transforms.Compose([transforms.ToTensor(),
+                                       #transforms.ToPILImage(),
+                                       transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+
    #Load datasets
    print("Loading data...")
-   w300 = data.W300Dataset()
-   w300_train_ind, w300_test_ind, w300_validate_ind = w300.train_test_validation_split()
-   ck = data.CKDataset()
-   ck_train_ind, ck_test_ind, ck_validate_ind = ck.train_test_validation_split()
-   bp4d = data.BP4DDataset()
-   bp4d_train_ind, bp4d_test_ind, bp4d_validate_ind = bp4d.train_test_validation_split()
+   train = data.BP4DDataset(csv_file=bp4d_train, transform=custom_transform)
+   test = data.BP4DDataset(csv_file=bp4d_test, transform=custom_transform)
+   valid = data.BP4DDataset(csv_file=bp4d_valid, transform=custom_transform)
+   #TODO: Number of workers
+   train_dl = DataLoader(train,
+                         batch_size=128,
+                         shuffle=True,
+                         num_workers=3)
+   test_dl = DataLoader(test, 
+                        batch_size=128,
+                        shuffle=True,
+                        num_workers=3)
+   valid_dl = DataLoader(valid, 
+                         batch_size=128,
+                         shuffle=True,
+                         num_workers=3)
    print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
-   epochs = 750
+   epochs = 1000
    
    print("Beginning training...")
-   for i in range(epochs):
-      print("epoch: " + str(i))
+   best_acc = -100000
+   for epoch in range(epochs):
       #train on 300W dataset
       model.train()
-      for j in range(len(w300_train_ind)):
-         #random data point to avoid temporal benefits
-         dp_index = random.randint(0, len(w300_train_ind) - 1)
-         #300W dataset train step
-         x_var, y_var = w300[w300_train_ind[dp_index]]
-         y_var = y_var.to(device)
-         #temp addition
-         x_var = x_var.unsqueeze(0)
-         x_var = x_var.view(1, 3, 224, 224)
-         
-         optimizer.zero_grad()
+      #model.eval()
+      #validate(model, valid_dl, device=device)
+      for batch_idx, (x_var, y_var) in enumerate(train_dl):
          x_var = x_var.to(device)
-         y_hat = model(x_var).view(-1, 1)
-         #print("y_var: " + str(y_var))
-         #print("y_hat: " + str(y_hat))
-         loss = loss_func.forward(y_hat, y_var)
-         loss.backward()
-         optimizer.step()
-         #print("x_var: " + str(x_var))
-         #print("y_hat: " + str(y_var))
-    
-      for j in range(len(ck_train_ind)):
-         dp_index = random.randint(0, len(ck_train_ind) - 1)
-         #CK+ dataset train step
-         x_var, y_var = ck[ck_train_ind[dp_index]]
          y_var = y_var.to(device)
-         x_var = x_var.unsqueeze(0)
-         x_var = x_var.view(1,3,224,224)
+         #forward/backprop
+         y_hat = model(x_var)
+         #print("y_hat: " + str(y_hat))
+         #print("y_hat len: " + str(len(y_hat[0])))
+         #print("y len: " + str(len(y_var[0])))
+         #input("Press enter to continue")
+         cost = loss_func.forward(y_hat, y_var.float())
+         optimizer.zero_grad()
 
-         optimizer.zero_grad()
-         x_var = x_var.to(device)
-         y_hat = model(x_var).view(-1,1)
-         #print("y_var: " + str(y_var))
-         #print("y_hat: " + str(y_hat))
-         loss = loss_func.forward(y_hat, y_var)
-         loss.backward()
-         optimizer.step()
-         #print("x_var: " + str(x_var))
-         #print("y_hat: " + str(y_hat))
-      
-      for j in range(len(bp4d_train_ind)):
-         dp_index = random.randint(0, len(bp4d_train_ind) - 1)
-         #BP4D dataset train step
-         x_var, y_var = bp4d[bp4d_train_ind[dp_index]]
-         y_var = y_var.to(device)
-         #temp addition
-         x_var = x_var.unsqueeze(0)
-         x_var = x_var.view(1, 3, 224, 224)
+         #Update model parameters
+         cost.backward()
 
-         optimizer.zero_grad()
-         x_var = x_var.to(device)
-         y_hat = model(x_var).view(-1, 1)
-         #print("y_var: " + str(y_var))
-         #print("y_hat: " + str(y_hat))
-         loss = loss_func.forward(y_hat, y_var)
-         loss.backward()
+         #Update model parameters
          optimizer.step()
-         #print("x_var: " + str(x_var))
-         #print("y_hat: " + str(y_hat))
-      
-      if(i % 10 == 0):
-         print("300W validation:")
-         validate(w300_validate_ind, w300, model, loss_func)
-         print("CK+ validation:")
-         validate(ck_validate_ind, ck, model, loss_func)
-         print("BP4D validation:")
-         validate(bp4d_validate_ind, bp4d, model, loss_func)
-         #input("waiting for key press")
+         #Logging
+         if not batch_idx % 50:
+             print ('Epoch: %03d/%03d | Batch %04d/%04d | Cost: %.4f' 
+                    %(epoch+1, epochs, batch_idx, 
+                      len(train_dl), cost))
+      model.eval()
+      with torch.set_grad_enabled(False): # save memory during inference
+        acc = validate(model, valid_dl, device=device)
+
+        # remember best acc and save checkpoint
+        is_best = acc > best_acc
+        best_acc = max(acc, best_acc)
+        save_checkpoint({
+            'epoch': epoch + 1,
+            'state_dict': model.state_dict(),
+            'best_prec1': best_acc,
+        }, is_best)
+        print('Epoch: %03d/%03d | Train: %.3f%% | Valid: %.3f%%' % (
+            epoch+1, epochs, 
+             validate(model, train_dl, device=device),
+             acc))
   
-   print("Test/final loss: ")
-   print("300W test:")
-   validate(w300_test_ind, w300, model, loss_func)
-   print("CK+ test")
-   validate(ck_test_ind, ck, model, loss_func)
    
    #save model weights
    print("Saving model to: "+ model_save_path)
    torch.save(model.state_dict(), model_save_path)
-
-
-def validate(valid_indices, dataset, model, loss_func):
-   agg_loss = 0
-   model.eval()
-   for i in range(len(valid_indices)):
-      #print("Validating: " + str(type(dataset)))
-      #print("Grabbed index: " + str(valid_indices[i]) + " Len: " + str(len(valid_indices)))
-      x_var, y_var = (None,None) #initialize for interpreter
-      try:
-         x_var, y_var = dataset[int(valid_indices[i])]
-      except:
-         break  
-      x_var = x_var.unsqueeze(0)
-      x_var = x_var.view(1, 3, 224, 224)
-      x_var = x_var.to(device)
-      y_var = y_var.to(device)
-      y_hat = model(x_var).view(-1,1)
-      loss = loss_func.forward(y_hat, y_var)
-      #print("x_var: " + str(x_var))
-      #print("y_hat: " + str(y_hat))
-      if i == 5: print("Random loss: " + str(loss.data))
-      agg_loss += loss.item()
-   print("Aggregate loss: " + str(agg_loss))
-   print("Average loss: " + str(agg_loss / len(valid_indices)))
       
 if __name__ == "__main__":
    main()   
