@@ -42,15 +42,15 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth'):
         shutil.copyfile(filename, directory + 'model_best.pth')
 
 def validate(model, data_loader, device=None):
-    correct_pred, num_examples = 0, 0
+    agg_cost = 0
     for i, (x, y) in enumerate(data_loader):
             
         x = x.to(device)
         y = y.to(device)
 
         y_hat = model(x)
-        cost = pcc(y_hat, y)
-    return cost
+        agg_cost += pcc(y_hat, y)
+    return cost / len(data_loader)
    
 def main():
    model = models.resnet50(pretrained=True)
