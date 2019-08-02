@@ -21,7 +21,7 @@ def get_length(d_df, indices):
          return size
 
 train_size = len(split_df["train"])
-valid_size = get_length(fec_df, split_df["validation"])
+valid_size = int(train_size * 0.1)
 
 print("Starting retrieval of train")
 train_frames = []
