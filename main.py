@@ -16,7 +16,7 @@ bp4d_test = "/data1/Alan/BP4D/test.csv"
 bp4d_valid = "/data1/Alan/BP4D/valid.csv"
 
 model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/model_finetuned_new750.pt"
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
 def init_weights(model):
@@ -49,14 +49,16 @@ def validate(model, data_loader, device=None):
         y = y.to(device)
 
         y_hat = model(x)
-        agg_cost += pcc(y_hat, y)
-    return cost / len(data_loader)
+        c = pcc(y_hat, y)
+        agg_cost += c
+        #print("batch " + str(i) + "'s pcc: " + str(c))
+    return agg_cost / len(data_loader)
    
 def main():
    model = models.resnet50(pretrained=True)
    #for param in model.parameters():
       #param.requires_grad=False
-   model.fc = nn.Linear(in_features=2048, out_features=23)
+   model.fc = nn.Linear(in_features=2048, out_features=5)
    model = init_weights(model)
    model.train()
    #loss_func = nn.MSELoss()
