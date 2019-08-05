@@ -11,6 +11,7 @@ import os
 import data
 import random
 import cv2
+import shutil
 
 #CSV paths
 fec_train = "/data1/Alan/GoogleDataset/train.csv"
@@ -84,10 +85,10 @@ def validate(model, data_loader, device=None):
       img3 = img3.to(device)
       e3 = model(img3)
 
-      #Use cosine distance to find embedding distances
-      sim_dist = torch.sub(one_var, cos_sim.forward(e1, e2))
-      diff_dist1 = torch.sub(one_var, cos_sim.forward(e2, e3))
-      diff_dist2 = torch.sub(one_var, cos_sim.forward(e1, e3))
+      #Use euclidean distance to find embedding distances
+      sim_dist = e1.dist(e2, p=2)
+      diff_dist1 = e1.dist(e3, p=2)
+      diff_dist2 = e2.dist(e3, p=2)
 
       num_examples += img1.size(0)
       num_correct += (sim_dist < diff_dist1 and sim_dist < diff_dist2).sum()
@@ -137,7 +138,7 @@ def main():
 
    #could improve upon this by using data loaders for mini-batch sampling
    epochs = 500
-   
+   best_acc = -10000
    print("Beginning training...")
    for epoch in range(epochs):
       #input("About to start training")
