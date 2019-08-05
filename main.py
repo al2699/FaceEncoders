@@ -15,7 +15,7 @@ bp4d_train = "/data1/Alan/BP4D/train.csv"
 bp4d_test = "/data1/Alan/BP4D/test.csv"
 bp4d_valid = "/data1/Alan/BP4D/valid.csv"
 
-model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/model_finetuned_new750.pt"
+model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/model_finetuned_newN.pt"
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
@@ -82,15 +82,15 @@ def main():
    train_dl = DataLoader(train,
                          batch_size=128,
                          shuffle=True,
-                         num_workers=3)
+                         num_workers=4)
    test_dl = DataLoader(test, 
                         batch_size=128,
                         shuffle=True,
-                        num_workers=3)
+                        num_workers=4)
    valid_dl = DataLoader(valid, 
                          batch_size=128,
                          shuffle=True,
-                         num_workers=3)
+                         num_workers=4)
    print("Data loaded")
 
    #could improve upon this by using data loaders for mini-batch sampling
