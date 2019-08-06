@@ -65,7 +65,7 @@ def main():
    #loss_func = pcc
    loss_func = nn.MSELoss()
    #Could later use adam
-   optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.01)
+   optimizer = optim.SGD(model.parameters(), lr=0.00001, momentum=0.001)
    print("Cuda available?: " + str(torch.cuda.is_available()))
    model = model.to(device)
 
