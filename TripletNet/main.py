@@ -110,7 +110,7 @@ def main():
    #input("Model.to(device)")
    #Could later use adam
    #Loss func goes here
-   optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.01)
+   optimizer = optim.SGD(model.parameters(), lr=0.00001, momentum=0.001)
 
 
    custom_transform = transforms.Compose([transforms.ToTensor(),
