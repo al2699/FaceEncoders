@@ -20,7 +20,7 @@ fec_valid = "/data1/Alan/GoogleDataset/valid.csv"
 
 
 #TODO: change N to num of epochs
-model_save_path = "/data2/Alan/FaceEncoders/TripletNet/triplet_finetuned_Ne.pt"
+model_save_path = "/data2/Alan/FaceEncoders/TripletNet/triplet_finetuned_Ne2.pt"
 #TODO: Change to cuda:0 when on 
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
@@ -60,13 +60,13 @@ def triplet_loss(img1Embed, img2Embed, img3Embed, margin, device=None):
    return loss.mean()
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth'):
+def save_checkpoint(state, is_best, filename='checkpoint2.pth'):
     """Saves checkpoint to disk"""
     directory = "/data2/Alan/FaceEncoders/TripletNet/"
     filename = directory + filename
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, directory + 'model_best.pth')
+        shutil.copyfile(filename, directory + 'model_best2.pth')
 
 def validate(model, data_loader, device=None):
    num_correct = 0
@@ -98,7 +98,7 @@ def validate(model, data_loader, device=None):
 
 def main():
    #For model
-   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+   device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
    #For images
    #import resnet 50 layers to fine tune
    model = models.resnet50(pretrained=True)
