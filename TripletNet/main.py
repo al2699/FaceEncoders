@@ -88,15 +88,25 @@ def validate(model, data_loader, device=None):
       #print("e2: " + str(e2))
       #print("e3: " + str(e3))
       #Use euclidean distance to find embedding distances
-      sim_dist = e1.dist(e2, p=2)
-      diff_dist1 = e1.dist(e3, p=2)
-      diff_dist2 = e2.dist(e3, p=2)
+      sim_dist_stack = []
+      diff_stack1 = []
+      diff_stack2 = []
+      for idx, row in enumerate(e1):
+         sim_dist_stack.append(row.dist(e2[idx], p=2))
+         diff_stack1.append(row.dist(e3[idx], p=2))
+         diff_stack2.append(e2[idx].dist(e3[idx], p=2))
+      sim_dist = torch.stack(sim_dist_stack)
+      diff_dist1 = torch.stack(diff_stack1)
+      diff_dist2 = torch.stack(diff_stack2)
 
       print("Sim dist: " + str(sim_dist))
       print("Diff dist1: " + str(diff_dist1))
       print("Diff dist2: " + str(diff_dist2))
       num_examples += img1.size(0)
-      num_correct += (sim_dist < diff_dist1 and sim_dist < diff_dist2).sum()
+      #num_correct += (sim_dist < diff_dist1 and sim_dist < diff_dist2).sum()
+      for i in range(img1.size(0)):
+         if(sim_dist[i] < diff_dist1[i] and sim_dist[i] < diff_dist2[i]):
+            num_correct += 1
       print("Current correct: " + str(num_correct))
       print("Current num ex: " + str(num_examples))
    prediction_accuracy = num_correct / num_examples
@@ -117,8 +127,8 @@ def main():
    #input("Model.to(device)")
    #Could later use adam
    #Loss func goes here
-   optimizer = optim.SGD(model.parameters(), lr=0.0000001, momentum=0.0001)
-
+   optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.001)
+   scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
 
    custom_transform = transforms.Compose([transforms.ToTensor(),
                                           transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
@@ -155,6 +165,7 @@ def main():
       #   validate(model, valid_dl, device=device)
       #input("After inference")
       #REMOVE END
+      scheduler.step()
       model.train()
       for batch_idx, (img1, img2, img3, margin) in enumerate(train_dl):
          img1 = img1.to(device)
@@ -187,10 +198,11 @@ def main():
              print ('Epoch: %03d/%03d | Batch %04d/%04d | Cost: %.4f'
                     %(epoch+1, epochs, batch_idx,
                       len(train_dl), cost))
+             print("Lr: " + str(scheduler.get_lr()))
       #Begin inference
       model.eval()
       with torch.set_grad_enabled(False): # save memory during inference
-        input("About to start validation")
+        #input("About to start validation")
         acc = validate(model, valid_dl, device=device)
 
         # remember best acc and save checkpoint
