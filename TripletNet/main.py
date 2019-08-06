@@ -84,22 +84,23 @@ def validate(model, data_loader, device=None):
       img3 = img3.to(device)
       e3 = model(img3)
       
-      print("e1: " + str(e1))
-      print("e2: " + str(e2))
-      print("e3: " + str(e3))
+      #print("e1: " + str(e1))
+      #print("e2: " + str(e2))
+      #print("e3: " + str(e3))
       #Use euclidean distance to find embedding distances
       sim_dist = e1.dist(e2, p=2)
       diff_dist1 = e1.dist(e3, p=2)
       diff_dist2 = e2.dist(e3, p=2)
 
-      print("Sim dist")
-      
+      print("Sim dist: " + str(sim_dist))
+      print("Diff dist1: " + str(diff_dist1))
+      print("Diff dist2: " + str(diff_dist2))
       num_examples += img1.size(0)
       num_correct += (sim_dist < diff_dist1 and sim_dist < diff_dist2).sum()
       print("Current correct: " + str(num_correct))
       print("Current num ex: " + str(num_examples))
    prediction_accuracy = num_correct / num_examples
-   return prediction_accuracy
+   return prediction_accuracy * 100
 
 
 def main():
@@ -189,6 +190,7 @@ def main():
       #Begin inference
       model.eval()
       with torch.set_grad_enabled(False): # save memory during inference
+        input("About to start validation")
         acc = validate(model, valid_dl, device=device)
 
         # remember best acc and save checkpoint
