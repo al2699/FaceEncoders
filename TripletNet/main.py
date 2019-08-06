@@ -116,7 +116,7 @@ def main():
    #input("Model.to(device)")
    #Could later use adam
    #Loss func goes here
-   optimizer = optim.SGD(model.parameters(), lr=0.000001, momentum=0.0001)
+   optimizer = optim.SGD(model.parameters(), lr=0.0000001, momentum=0.0001)
 
 
    custom_transform = transforms.Compose([transforms.ToTensor(),
@@ -148,11 +148,11 @@ def main():
    print("Beginning training...")
    for epoch in range(epochs):
       #REMOVE START
-      input("About to start inference")
-      model.eval()
-      with torch.set_grad_enabled(False):
-         validate(model, valid_dl, device=device)
-      input("After inference")
+      #input("About to start inference")
+      #model.eval()
+      #with torch.set_grad_enabled(False):
+      #   validate(model, valid_dl, device=device)
+      #input("After inference")
       #REMOVE END
       model.train()
       for batch_idx, (img1, img2, img3, margin) in enumerate(train_dl):
