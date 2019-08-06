@@ -71,27 +71,33 @@ def save_checkpoint(state, is_best, filename='checkpoint2.pth'):
 def validate(model, data_loader, device=None):
    num_correct = 0
    num_examples = 0
-   cos_sim = nn.CosineSimilarity(dim=16)
    one_tensor = torch.Tensor([1])
    one_var = Variable(one_tensor, requires_grad=False)
    one_var.to(device)
 
    for i, (img1, img2, img3, margin) in enumerate(data_loader):
-
+      print("img1: " + str(img1))
       img1 = img1.to(device)
       e1 = model(img1)
       img2 = img2.to(device)
       e2 = model(img2)
       img3 = img3.to(device)
       e3 = model(img3)
-
+      
+      print("e1: " + str(e1))
+      print("e2: " + str(e2))
+      print("e3: " + str(e3))
       #Use euclidean distance to find embedding distances
       sim_dist = e1.dist(e2, p=2)
       diff_dist1 = e1.dist(e3, p=2)
       diff_dist2 = e2.dist(e3, p=2)
 
+      print("Sim dist")
+      
       num_examples += img1.size(0)
       num_correct += (sim_dist < diff_dist1 and sim_dist < diff_dist2).sum()
+      print("Current correct: " + str(num_correct))
+      print("Current num ex: " + str(num_examples))
    prediction_accuracy = num_correct / num_examples
    return prediction_accuracy
 
@@ -110,7 +116,7 @@ def main():
    #input("Model.to(device)")
    #Could later use adam
    #Loss func goes here
-   optimizer = optim.SGD(model.parameters(), lr=0.00001, momentum=0.001)
+   optimizer = optim.SGD(model.parameters(), lr=0.000001, momentum=0.0001)
 
 
    custom_transform = transforms.Compose([transforms.ToTensor(),
@@ -141,7 +147,13 @@ def main():
    best_acc = -10000
    print("Beginning training...")
    for epoch in range(epochs):
-      #input("About to start training")
+      #REMOVE START
+      input("About to start inference")
+      model.eval()
+      with torch.set_grad_enabled(False):
+         validate(model, valid_dl, device=device)
+      input("After inference")
+      #REMOVE END
       model.train()
       for batch_idx, (img1, img2, img3, margin) in enumerate(train_dl):
          img1 = img1.to(device)
