@@ -1,7 +1,9 @@
 #!/home/ICT2000/ahernandez/anaconda3/envs/myenv/bin/python3
 
+import model
 import torch
 import torch.nn as nn
+import torch.nn.functional as f
 import torch.optim as optim
 from torch.autograd import Variable
 import torchvision.models as models
@@ -14,18 +16,19 @@ import cv2
 import shutil
 
 #CSV paths
-fec_train = "/data1/Alan/GoogleDataset/train.csv"
-fec_test = "/data1/Alan/GoogleDataset/fec_test_new1.csv"
-fec_valid = "/data1/Alan/GoogleDataset/valid.csv"
+fec_train = "/data1/Alan/GoogleDatase-Default/train.csv"
+fec_test = "/data1/Alan/GoogleDataset-Default/fec_test.csv"
+fec_valid = "/data1/Alan/GoogleDataset-Default/valid.csv"
 
 
 #TODO: change N to num of epochs
-model_save_path = "/data2/Alan/FaceEncoders/TripletNet/triplet_finetuned_Ne.pt"
+model_save_path = "/data2/Alan/FaceEncoders/TripletNet/triplet_finetuned_Ne2.pt"
 #TODO: Change to cuda:0 when on 
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
 def init_weights(model):
    model.fc.weight.data.fill_(0.01)
+   model.fc2.weight.data.fill_(0.01)
    return model
 
 #ASSSUMING img1Embed and img2Embed are most similar img embeddings
@@ -60,58 +63,78 @@ def triplet_loss(img1Embed, img2Embed, img3Embed, margin, device=None):
    return loss.mean()
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth'):
+def save_checkpoint(state, is_best, filename='checkpoint2.pth'):
     """Saves checkpoint to disk"""
     directory = "/data2/Alan/FaceEncoders/TripletNet/"
     filename = directory + filename
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, directory + 'model_best.pth')
+        shutil.copyfile(filename, directory + 'model_best2.pth')
 
 def validate(model, data_loader, device=None):
    num_correct = 0
    num_examples = 0
-   cos_sim = nn.CosineSimilarity(dim=16)
    one_tensor = torch.Tensor([1])
    one_var = Variable(one_tensor, requires_grad=False)
    one_var.to(device)
 
    for i, (img1, img2, img3, margin) in enumerate(data_loader):
-
+      #print("img1: " + str(img1))
       img1 = img1.to(device)
-      e1 = model(img1)
+      e1 = f.normalize(model(img1), p=2, dim=-1)
       img2 = img2.to(device)
-      e2 = model(img2)
+      e2 = f.normalize(model(img2), p=2, dim=-1)
       img3 = img3.to(device)
-      e3 = model(img3)
-
+      e3 = f.normalize(model(img3), p=2, dim=-1)
+      
+      #print("e1: " + str(e1))
+      #print("e2: " + str(e2))
+      #print("e3: " + str(e3))
       #Use euclidean distance to find embedding distances
-      sim_dist = e1.dist(e2, p=2)
-      diff_dist1 = e1.dist(e3, p=2)
-      diff_dist2 = e2.dist(e3, p=2)
+      sim_dist_stack = []
+      diff_stack1 = []
+      diff_stack2 = []
+      for idx, row in enumerate(e1):
+         sim_dist_stack.append(row.dist(e2[idx], p=2))
+         diff_stack1.append(row.dist(e3[idx], p=2))
+         diff_stack2.append(e2[idx].dist(e3[idx], p=2))
+      sim_dist = torch.stack(sim_dist_stack)
+      diff_dist1 = torch.stack(diff_stack1)
+      diff_dist2 = torch.stack(diff_stack2)
 
+      #print("Sim dist: " + str(sim_dist))
+      #print("Diff dist1: " + str(diff_dist1))
+      #print("Diff dist2: " + str(diff_dist2))
       num_examples += img1.size(0)
-      num_correct += (sim_dist < diff_dist1 and sim_dist < diff_dist2).sum()
+      #num_correct += (sim_dist < diff_dist1 and sim_dist < diff_dist2).sum()
+      for i in range(img1.size(0)):
+         if(sim_dist[i] < diff_dist1[i] and sim_dist[i] < diff_dist2[i]):
+            num_correct += 1
+      print("Current correct: " + str(num_correct))
+      print("Current num ex: " + str(num_examples))
    prediction_accuracy = num_correct / num_examples
-   return prediction_accuracy
+   return prediction_accuracy * 100
 
 
 def main():
    #For model
-   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+   device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
    #For images
    #import resnet 50 layers to fine tune
    model = models.resnet50(pretrained=True)
    #Output to 16-d embedding
-   model.fc = nn.Linear(in_features=2048, out_features=16)
+   model.fc = nn.Linear(in_features=2048, out_features=512)
+   model.fc1r = nn.ReLU()
+   model.fc2 = nn.Linear(in_features=512, out_features=16)
    model = init_weights(model)
+   print(model)
    print("Cuda available?: " + str(torch.cuda.is_available()))
    model.to(device)
    #input("Model.to(device)")
    #Could later use adam
    #Loss func goes here
-   optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.01)
-
+   optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.001)
+   scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
 
    custom_transform = transforms.Compose([transforms.ToTensor(),
                                           transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
@@ -141,7 +164,14 @@ def main():
    best_acc = -10000
    print("Beginning training...")
    for epoch in range(epochs):
-      #input("About to start training")
+      #REMOVE START
+      #input("About to start inference")
+      #model.eval()
+      #with torch.set_grad_enabled(False):
+      #   validate(model, valid_dl, device=device)
+      #input("After inference")
+      #REMOVE END
+      scheduler.step()
       model.train()
       for batch_idx, (img1, img2, img3, margin) in enumerate(train_dl):
          img1 = img1.to(device)
@@ -150,16 +180,12 @@ def main():
 
          #forward/backprop
          #input("Added imgs to devices")
-         e1 = model(img1)
+         e1 = f.normalize(model(img1), p=2, dim=-1)
+         print("e1: " + str(e1))
          #input("after model(img1)")
-         e2 = model(img2)
+         e2 = f.normalize(model(img2), p=2, dim=-1)
          #input("after model(img2)")
-         e3 = model(img3)
-         #input("after model(img3)")
-         #print("y_hat: " + str(y_hat))
-         #print("y_hat len: " + str(len(y_hat[0])))
-         #print("y len: " + str(len(y_var[0])))
-         #input("After model(img1)")
+         e3 = f.normalize(model(img3), p=2, dim=-1)
          cost = triplet_loss(e1, e2, e3, margin,
                                  device=device)
          optimizer.zero_grad()
@@ -174,9 +200,11 @@ def main():
              print ('Epoch: %03d/%03d | Batch %04d/%04d | Cost: %.4f'
                     %(epoch+1, epochs, batch_idx,
                       len(train_dl), cost))
+             print("Lr: " + str(scheduler.get_lr()))
       #Begin inference
       model.eval()
       with torch.set_grad_enabled(False): # save memory during inference
+        #input("About to start validation")
         acc = validate(model, valid_dl, device=device)
 
         # remember best acc and save checkpoint

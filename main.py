@@ -16,7 +16,7 @@ bp4d_test = "/data1/Alan/BP4D/test.csv"
 bp4d_valid = "/data1/Alan/BP4D/valid.csv"
 
 model_save_path = "/home/ICT2000/ahernandez/FaceEncoders/model_finetuned_newN.pt"
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 #Special case: only init weights which are on the last fc since
 #we want the rest of the restnet weights to be the same
 def init_weights(model):
