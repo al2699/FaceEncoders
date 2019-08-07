@@ -66,17 +66,10 @@ class FECDataset(Dataset):
      
       #Extract images and label them based on whether or not they are
       #similar to each other
-      img1, img2, img3 = None, None, None
-      if self.csv_file[-12:] != "fec_test.csv":
-         img3 = Image.open((row["image" + str(furthest_img_ind)]).replace("/home/ICT2000/ahernandez/Downloads/", "/data1/Alan/GoogleDataset-Default/GoogleDataset-new-crop/"))
-         img_options.remove(furthest_img_ind)
-         img1 = Image.open((row["image" + str(img_options[0])]).replace(("/home/ICT2000/ahernandez/Downloads/", "/data1/Alan/GoogleDataset-Default/GoogleDataset-new-crop/"))
-         img2 = Image.open((row["image" + str(img_options[1])]).replace(("/home/ICT2000/ahernandez/Downloads/", "/data1/Alan/GoogleDataset-Default/GoogleDataset-new-crop/"))
-      else:
-         img3 = Image.open((row["image" + str(furthest_img_ind)]).replace("test/", "/data1/Alan/GoogleDataset-Default/GoogleDataset-Test-new-crop/"))
-         img_options.remove(furthest_img_ind)
-         img1 = Image.open((row["image" + str(img_options[0])]).replace(("test/", "/data1/Alan/GoogleDataset-Default/GoogleDataset-Test-new-crop/"))
-         img2 = Image.open((row["image" + str(img_options[1])]).replace(("test/", "/data1/Alan/GoogleDataset-Default/GoogleDataset-Test-new-crop/"))
+      img3 = Image.open(row["image" + str(furthest_img_ind)])
+      img_options.remove(furthest_img_ind)
+      img1 = Image.open(row["image" + str(img_options[0])])
+      img2 = Image.open(row["image" + str(img_options[1])])
       #print("Extracted: " + image_path)
 
       #Perform transforma/normalization to fit what resnet pretrained

@@ -1,7 +1,9 @@
 #!/home/ICT2000/ahernandez/anaconda3/envs/myenv/bin/python3
 
+import model
 import torch
 import torch.nn as nn
+import torch.nn.functional as f
 import torch.optim as optim
 from torch.autograd import Variable
 import torchvision.models as models
@@ -14,9 +16,9 @@ import cv2
 import shutil
 
 #CSV paths
-fec_train = "/data1/Alan/GoogleDataset/train.csv"
-fec_test = "/data1/Alan/GoogleDataset/fec_test_new1.csv"
-fec_valid = "/data1/Alan/GoogleDataset/valid.csv"
+fec_train = "/data1/Alan/GoogleDatase-Default/train.csv"
+fec_test = "/data1/Alan/GoogleDataset-Default/fec_test.csv"
+fec_valid = "/data1/Alan/GoogleDataset-Default/valid.csv"
 
 
 #TODO: change N to num of epochs
@@ -26,6 +28,7 @@ model_save_path = "/data2/Alan/FaceEncoders/TripletNet/triplet_finetuned_Ne2.pt"
 #we want the rest of the restnet weights to be the same
 def init_weights(model):
    model.fc.weight.data.fill_(0.01)
+   model.fc2.weight.data.fill_(0.01)
    return model
 
 #ASSSUMING img1Embed and img2Embed are most similar img embeddings
@@ -78,11 +81,11 @@ def validate(model, data_loader, device=None):
    for i, (img1, img2, img3, margin) in enumerate(data_loader):
       #print("img1: " + str(img1))
       img1 = img1.to(device)
-      e1 = model(img1)
+      e1 = f.normalize(model(img1), p=2, dim=-1)
       img2 = img2.to(device)
-      e2 = model(img2)
+      e2 = f.normalize(model(img2), p=2, dim=-1)
       img3 = img3.to(device)
-      e3 = model(img3)
+      e3 = f.normalize(model(img3), p=2, dim=-1)
       
       #print("e1: " + str(e1))
       #print("e2: " + str(e2))
@@ -120,8 +123,11 @@ def main():
    #import resnet 50 layers to fine tune
    model = models.resnet50(pretrained=True)
    #Output to 16-d embedding
-   model.fc = nn.Linear(in_features=2048, out_features=16)
+   model.fc = nn.Linear(in_features=2048, out_features=512)
+   model.fc1r = nn.ReLU()
+   model.fc2 = nn.Linear(in_features=512, out_features=16)
    model = init_weights(model)
+   print(model)
    print("Cuda available?: " + str(torch.cuda.is_available()))
    model.to(device)
    #input("Model.to(device)")
@@ -174,16 +180,12 @@ def main():
 
          #forward/backprop
          #input("Added imgs to devices")
-         e1 = model(img1)
+         e1 = f.normalize(model(img1), p=2, dim=-1)
+         print("e1: " + str(e1))
          #input("after model(img1)")
-         e2 = model(img2)
+         e2 = f.normalize(model(img2), p=2, dim=-1)
          #input("after model(img2)")
-         e3 = model(img3)
-         #input("after model(img3)")
-         #print("y_hat: " + str(y_hat))
-         #print("y_hat len: " + str(len(y_hat[0])))
-         #print("y len: " + str(len(y_var[0])))
-         #input("After model(img1)")
+         e3 = f.normalize(model(img3), p=2, dim=-1)
          cost = triplet_loss(e1, e2, e3, margin,
                                  device=device)
          optimizer.zero_grad()
