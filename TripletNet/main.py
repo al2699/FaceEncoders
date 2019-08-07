@@ -76,7 +76,7 @@ def validate(model, data_loader, device=None):
    one_var.to(device)
 
    for i, (img1, img2, img3, margin) in enumerate(data_loader):
-      print("img1: " + str(img1))
+      #print("img1: " + str(img1))
       img1 = img1.to(device)
       e1 = model(img1)
       img2 = img2.to(device)
@@ -99,9 +99,9 @@ def validate(model, data_loader, device=None):
       diff_dist1 = torch.stack(diff_stack1)
       diff_dist2 = torch.stack(diff_stack2)
 
-      print("Sim dist: " + str(sim_dist))
-      print("Diff dist1: " + str(diff_dist1))
-      print("Diff dist2: " + str(diff_dist2))
+      #print("Sim dist: " + str(sim_dist))
+      #print("Diff dist1: " + str(diff_dist1))
+      #print("Diff dist2: " + str(diff_dist2))
       num_examples += img1.size(0)
       #num_correct += (sim_dist < diff_dist1 and sim_dist < diff_dist2).sum()
       for i in range(img1.size(0)):
@@ -115,7 +115,7 @@ def validate(model, data_loader, device=None):
 
 def main():
    #For model
-   device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+   device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
    #For images
    #import resnet 50 layers to fine tune
    model = models.resnet50(pretrained=True)
