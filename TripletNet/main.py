@@ -1,6 +1,6 @@
 #!/home/ICT2000/ahernandez/anaconda3/envs/myenv/bin/python3
 
-import model
+#import model
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
@@ -16,7 +16,7 @@ import cv2
 import shutil
 
 #CSV paths
-fec_train = "/data1/Alan/GoogleDatase-Default/train.csv"
+fec_train = "/data1/Alan/GoogleDataset-Default/train.csv"
 fec_test = "/data1/Alan/GoogleDataset-Default/fec_test.csv"
 fec_valid = "/data1/Alan/GoogleDataset-Default/valid.csv"
 
@@ -123,6 +123,7 @@ def main():
    #import resnet 50 layers to fine tune
    model = models.resnet50(pretrained=True)
    #Output to 16-d embedding
+   #May need to create nn.Sequential instead of just layers
    model.fc = nn.Linear(in_features=2048, out_features=512)
    model.fc1r = nn.ReLU()
    model.fc2 = nn.Linear(in_features=512, out_features=16)
@@ -181,7 +182,7 @@ def main():
          #forward/backprop
          #input("Added imgs to devices")
          e1 = f.normalize(model(img1), p=2, dim=-1)
-         print("e1: " + str(e1))
+         #print("e1: " + str(e1))
          #input("after model(img1)")
          e2 = f.normalize(model(img2), p=2, dim=-1)
          #input("after model(img2)")
